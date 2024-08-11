@@ -1,0 +1,15 @@
+[package]
+name = "shor"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+axum = "0.7.5"
+base62 = "2.0.2"
+serde = { version = "1.0.204", features = ["derive"] }
+sha2 = "0.10.8"
+tokio = { version = "1.38.0", features = ["full"] }
+tokio-postgres = "0.7.11"
+validator = { version ="0.18.1", features = ["derive"] }
