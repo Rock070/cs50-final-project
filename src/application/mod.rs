@@ -4,7 +4,7 @@ use axum::Router;
 
 pub struct Application {
     port: u16,
-    router: Router,
+    pub router: Router,
 }
 
 impl Application {
