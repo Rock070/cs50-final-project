@@ -1,43 +1,56 @@
+use crate::domain::HashUrlBody;
+use crate::entity::urls;
 use axum::{http::StatusCode, Json};
-use crate::{{}};
+use base62::encode;
+use sea_orm::{ActiveValue, Database, EntityTrait};
+use uuid::Uuid;
 use sha2::{Sha256, Digest};
-use base62::{encode, decode};
-use serde::Deserialize;
-use validator::Validate;
-use sea_orm::Database;
 
-use crate::domain::HashUrlBodyUrl;
-
-#[derive(Debug, Deserialize, Validate)]
-pub struct HashUrlBody {
-    /**
-     * raw url before hashing
-     */
-    #[validate(url)]
-    pub url: String,
-}
-
-pub async fn hash_url(Json(data): Json<HashUrlBody>) -> Result<(StatusCode, String), (StatusCode, String)> {
-    let body = HashUrlBodyUrl::new(data.url);
+pub async fn hash_url(
+    Json(data): Json<HashUrlBody>,
+) -> Result<(StatusCode, String), (StatusCode, String)> {
+    let body = HashUrlBody::new(data.url);
     match body {
-        Ok(_url) => {
-          let database = Database::connect("postgres://rock:rock0702@localhost:5432/short_url")
-            .await
-            .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+        Ok(url_body) => {
+            let database = Database::connect("postgres://rock:rock0702@localhost:5432/shor")
+                .await
+                .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
 
-          let hash = Sha256::digest(b"my message");
-          let num: u64 = 999999;
-          let hash2 = encode(num);
-          let de = decode("4C91");
-          println!("hash Result: {:?}", hash);
-          println!("hash2 Result: {}", hash2);
-          println!("de Result: {:?}", de);
+            // 使用 SHA-256 對 URL 進行哈希
+            let mut hasher = Sha256::new();
+            hasher.update(url_body.url.as_bytes());
+            let result = hasher.finalize();
 
-          Ok((StatusCode::OK, "URL is valid".to_string()))
+            // 將哈希結果轉換為 u64
+            // 取 sha-256 結果的前 8 個 bytes，使用 try_into 宣告為長度為 8 的 u8 陣列，
+            // 再使用 from_be_bytes 轉換為 u64
+            let num = u64::from_be_bytes(result[..8].try_into().unwrap());
+
+            // 使用 base62 編碼
+            let short_url = encode(num);
+
+            let url = urls::ActiveModel {
+                id: ActiveValue::Set(Uuid::new_v4()),
+                url: ActiveValue::Set(url_body.url),
+                user_id: ActiveValue::NotSet,
+                short_url: ActiveValue::Set(short_url.clone()),
+                updated_at: ActiveValue::NotSet,
+                ..Default::default()
+            };
+
+            urls::Entity::insert(url)
+                .exec(&database)
+                .await
+                .map_err(|e| (StatusCode::BAD_REQUEST, e.to_string()))?;
+
+            database.close()
+                .await
+                .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+
+            Ok((StatusCode::OK, format!("縮短的 URL 是: {}", short_url)))
         }
         Err(e) => {
-            let error_message = format!("[Invalid URL] {}", e);
-            println!("{}", 2);
+            let error_message = format!("[無效的 URL] {}", e);
             Err((StatusCode::BAD_REQUEST, error_message))
         }
     }
