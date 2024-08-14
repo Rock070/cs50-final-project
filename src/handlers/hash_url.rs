@@ -1,21 +1,21 @@
-use crate::domain::HashUrlBody;
-use crate::entity::urls;
-use axum::{http::StatusCode, Json};
+use crate::{
+    domain::HashUrlBody,
+    entity::urls,
+    application::AppState
+};
+use axum::{http::StatusCode, Json, extract::State};
 use base62::encode;
-use sea_orm::{ActiveValue, Database, EntityTrait};
+use sea_orm::{ActiveValue, EntityTrait};
 use uuid::Uuid;
 use sha2::{Sha256, Digest};
 
 pub async fn hash_url(
+    state: State<AppState>,
     Json(data): Json<HashUrlBody>,
 ) -> Result<(StatusCode, String), (StatusCode, String)> {
     let body = HashUrlBody::new(data.url);
     match body {
         Ok(url_body) => {
-            let database = Database::connect("postgres://rock:rock0702@localhost:5432/shor")
-                .await
-                .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
-
             // 使用 SHA-256 對 URL 進行哈希
             let mut hasher = Sha256::new();
             hasher.update(url_body.url.as_bytes());
@@ -39,13 +39,9 @@ pub async fn hash_url(
             };
 
             urls::Entity::insert(url)
-                .exec(&database)
+                .exec(&state.database)
                 .await
                 .map_err(|e| (StatusCode::BAD_REQUEST, e.to_string()))?;
-
-            database.close()
-                .await
-                .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
 
             Ok((StatusCode::OK, format!("縮短的 URL 是: {}", short_url)))
         }

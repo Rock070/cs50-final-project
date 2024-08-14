@@ -2,5 +2,8 @@ use shor::Application;
 
 #[tokio::main]
 async fn main() {
-    Application::build().run().await;
+    Application::build()
+        .await
+        .run()
+        .await;
 }
