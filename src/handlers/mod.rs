@@ -1,5 +1,5 @@
 mod hash_url;
-mod health_check;
+mod redirect_hash_url;
 
 pub use hash_url::*;
-pub use health_check::*;
+pub use redirect_hash_url::*;

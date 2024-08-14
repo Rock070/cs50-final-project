@@ -10,7 +10,7 @@ pub struct Application {
 impl Application {
     pub fn build() -> Self {
         let router = Router::new()
-            .route("/health_check", get(health_check))
+            .route("/*path", get(redirect_hash_url))
             .route("/hash_url", post(hash_url));
 
         Self { port: 3000, router }
