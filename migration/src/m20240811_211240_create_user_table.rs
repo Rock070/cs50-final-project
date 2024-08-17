@@ -30,6 +30,11 @@ impl MigrationTrait for Migration {
                             .not_null()
                     )
                     .col(
+                        ColumnDef::new(Users::Salt)
+                            .string()
+                            .not_null()
+                    )
+                    .col(
                         ColumnDef::new(Users::Email)
                             .string()
                             .not_null()
@@ -39,10 +44,9 @@ impl MigrationTrait for Migration {
                         .timestamp()
                             .default(Expr::current_timestamp())
                         )
-                        .col(
-                            ColumnDef::new(Users::UpdatedAt)
+                    .col(
+                        ColumnDef::new(Users::UpdatedAt)
                             .timestamp()
-                        .not_null()
                     )
                     .to_owned(),
             )

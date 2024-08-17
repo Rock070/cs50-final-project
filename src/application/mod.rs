@@ -21,6 +21,8 @@ impl Application {
         let router = Router::new()
             .route("/*path", get(redirect_hash_url))
             .route("/hash_url", post(hash_url))
+            // .route("/user", get(get_user))
+            .route("/user/register", post(user_register))
             .with_state(AppState {
                 database
             });

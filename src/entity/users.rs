@@ -10,9 +10,10 @@ pub struct Model {
     #[sea_orm(unique)]
     pub username: String,
     pub password: String,
+    pub salt: String,
     pub email: String,
     pub created_at: Option<DateTime>,
-    pub updated_at: DateTime,
+    pub updated_at: Option<DateTime>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

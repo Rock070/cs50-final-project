@@ -6,6 +6,7 @@ pub enum Users {
     Id,
     Username,
     Password,
+    Salt,
     Email,
     CreatedAt,
     UpdatedAt,
