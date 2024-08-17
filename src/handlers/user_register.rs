@@ -1,7 +1,7 @@
 use uuid::Uuid;
 use validator::Validate;
 
-use crate::{application::AppState, domain::RegisterData, entity::users};
+use crate::{application::AppState, domain::RegisterPayload, entity::users};
 
 use argon2::{
     password_hash::{rand_core::OsRng, PasswordHasher, SaltString},
@@ -17,9 +17,9 @@ use axum::{
 
 pub async fn user_register(
     state: State<AppState>,
-    Json(payload): Json<RegisterData>,
+    Json(payload): Json<RegisterPayload>,
 ) -> Result<(StatusCode, Json<String>), (StatusCode, Json<String>)> {
-    let register_data = RegisterData {
+    let register_data = RegisterPayload {
         username: payload.username.clone(),
         password: payload.password,
         email: payload.email,
