@@ -1,9 +1,9 @@
 use crate::handlers::*;
-use axum:: {
+use axum::{
     routing::{get, post},
-    Router
+    Router,
 };
-use sea_orm::{DatabaseConnection, Database};
+use sea_orm::{Database, DatabaseConnection};
 
 pub struct Application {
     port: u16,
@@ -13,19 +13,17 @@ pub struct Application {
 impl Application {
     pub async fn build() -> Self {
         let database = Database::connect("postgres://rock:rock0702@localhost:5432/shor")
-        .await
-        .unwrap_or_else(|error| {
-            panic!("Error connecting to database: {}", error);
-        });
+            .await
+            .unwrap_or_else(|error| {
+                panic!("Error connecting to database: {}", error);
+            });
 
         let router = Router::new()
             .route("/*path", get(redirect_hash_url))
             .route("/hash_url", post(hash_url))
             // .route("/user", get(get_user))
             .route("/user/register", post(user_register))
-            .with_state(AppState {
-                database
-            });
+            .with_state(AppState { database });
 
         Self { port: 3000, router }
     }
@@ -39,8 +37,7 @@ impl Application {
     }
 }
 
-
 #[derive(Debug, Clone)]
 pub struct AppState {
-    pub database: DatabaseConnection
+    pub database: DatabaseConnection,
 }

@@ -1,14 +1,10 @@
-use crate::{
-    domain::HashUrlBody,
-    entity::urls,
-    application::AppState
-};
+use crate::{application::AppState, domain::HashUrlBody, entity::urls};
 
-use axum::{http::StatusCode, Json, extract::State};
+use axum::{extract::State, http::StatusCode, Json};
 use base62::encode;
 use sea_orm::{ActiveValue, EntityTrait};
+use sha2::{Digest, Sha256};
 use uuid::Uuid;
-use sha2::{Sha256, Digest};
 
 pub async fn hash_url(
     state: State<AppState>,

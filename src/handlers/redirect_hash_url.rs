@@ -1,16 +1,16 @@
-use sea_orm::{EntityTrait, QueryFilter, ColumnTrait};
-use crate::{
-    entity::urls,
-    application::AppState
-};
+use crate::{application::AppState, entity::urls};
+use sea_orm::{ColumnTrait, EntityTrait, QueryFilter};
 
 use axum::{
-    http::StatusCode,
     extract::{Path, State},
-    response::{Redirect, IntoResponse},
+    http::StatusCode,
+    response::{IntoResponse, Redirect},
 };
 
-pub async fn redirect_hash_url(state: State<AppState>, Path(path): Path<String>) -> Result<impl IntoResponse, (StatusCode, String)> {
+pub async fn redirect_hash_url(
+    state: State<AppState>,
+    Path(path): Path<String>,
+) -> Result<impl IntoResponse, (StatusCode, String)> {
     // validate path only include base62 characters [0-9a-zA-Z]
     if !is_valid_path(&path) {
         return Err((StatusCode::BAD_REQUEST, format!("Invalid path: {}", path)));
@@ -31,7 +31,8 @@ pub async fn redirect_hash_url(state: State<AppState>, Path(path): Path<String>)
 
 // TODO: testing
 fn is_valid_path(path: &str) -> bool {
-    path.chars().all(|c| c.is_ascii_alphabetic() || c.is_ascii_digit())
+    path.chars()
+        .all(|c| c.is_ascii_alphabetic() || c.is_ascii_digit())
 }
 
 #[cfg(test)]
