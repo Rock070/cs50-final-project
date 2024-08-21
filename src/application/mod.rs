@@ -1,9 +1,19 @@
-use crate::handlers::*;
+use crate::{
+    handlers::*,
+    Configuration,
+    DatabaseSetting,
+    JwtHandler, 
+    ApplicationSetting,
+    JwtHandlerSetting,
+};
+
 use axum::{
     routing::{get, post},
     Router,
 };
 use sea_orm::{Database, DatabaseConnection};
+use secrecy::ExposeSecret;
+use jsonwebtoken::{Algorithm, Header};
 
 pub struct Application {
     port: u16,
@@ -11,12 +21,9 @@ pub struct Application {
 }
 
 impl Application {
-    pub async fn build() -> Self {
-        let database = Database::connect("postgres://rock:rock0702@localhost:5432/shor")
-            .await
-            .unwrap_or_else(|error| {
-                panic!("Error connecting to database: {}", error);
-            });
+    pub async fn build(config: &Configuration) -> Self {
+        let database = get_database(&config.database).await.unwrap();
+        let jwt_handler = get_jwt_handler(&config.jwt_handler);
 
         let router = Router::new()
             .route("/*path", get(redirect_hash_url))
@@ -24,9 +31,16 @@ impl Application {
             // .route("/user", get(get_user))
             .route("/user/login", post(user_login))
             .route("/user/register", post(user_register))
-            .with_state(AppState { database });
+            .with_state(AppState { 
+                database,
+                jwt_handler,
+                application: config.application.clone(),
+            });
 
-        Self { port: 3000, router }
+        Self { 
+            port: config.application.port, 
+            router 
+        }
     }
 
     pub async fn run(self) {
@@ -38,7 +52,28 @@ impl Application {
     }
 }
 
+pub async fn get_database(
+    setting: &DatabaseSetting,
+) -> Result<DatabaseConnection, sea_orm::DbErr> {
+    Database::connect(setting.connection_string().expose_secret()).await
+}
+
+
+pub fn get_jwt_handler(
+    setting: &JwtHandlerSetting,
+) -> JwtHandler {
+    JwtHandler {
+        private_key: setting.private_key.clone(),
+        header: Header::new(Algorithm::RS256),
+        public_key: setting.public_key.clone(),
+        expiration_time: setting.expiration_time,
+    }
+}
+
+
 #[derive(Debug, Clone)]
 pub struct AppState {
     pub database: DatabaseConnection,
+    pub jwt_handler: JwtHandler,
+    pub application: ApplicationSetting,
 }

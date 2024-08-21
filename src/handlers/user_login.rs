@@ -58,6 +58,10 @@ pub async fn user_login(state: State<AppState>, Json(payload): Json<LoginPayload
       return Err((StatusCode::BAD_REQUEST, Json("Username or password is incorrect".to_string())));
     }
 
+  let token = state.jwt_handler.clone().create_token(&state.application, column.username.as_str()).map_err(|e| {
+    (StatusCode::INTERNAL_SERVER_ERROR, Json(e.to_string()))
+  })?;
+
   return Ok((StatusCode::OK, Json(json!({
     "message": "Login successful",
     "status": "success",
@@ -66,7 +70,7 @@ pub async fn user_login(state: State<AppState>, Json(payload): Json<LoginPayload
       "id": column.id,
       "username": column.username,
       "email": column.email,
+      "token": token
     }
   }).to_string())));
 }
-

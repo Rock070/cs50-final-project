@@ -1,6 +1,8 @@
-use shor::Application;
+use shor::{Application, get_configuration};
 
 #[tokio::main]
 async fn main() {
-    Application::build().await.run().await;
+    let config = get_configuration().expect("Failed to read configuration.");
+
+    Application::build(&config).await.run().await;
 }

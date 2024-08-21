@@ -2,12 +2,14 @@ use axum::{
     body::Body,
     http::{Request, StatusCode},
 };
-use shor::Application;
+use shor::{Application, get_configuration};
 use tower::ServiceExt;
 
 // TODO: 只建立一次app，然後在每個 test 中重複使用
 async fn setup() -> axum::Router {
-    Application::build().await.router
+    let config = get_configuration().expect("Failed to read configuration.");
+
+    Application::build(&config).await.router
 }
 
 mod test_hash_url {

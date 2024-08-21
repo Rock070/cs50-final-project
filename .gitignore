@@ -1,2 +1,4 @@
 **/target
 .env
+configuration/development.yml
+configuration/production.yml
