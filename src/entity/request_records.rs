@@ -9,7 +9,7 @@ pub struct Model {
     pub id: Uuid,
     pub ip: String,
     pub user_agent: String,
-    pub referer: Option<String>,
+    pub origin: Option<String>,
     pub url_id: Uuid,
     pub created_at: DateTime,
 }

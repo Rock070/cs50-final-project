@@ -30,7 +30,7 @@ pub enum RequestRecords {
     Id,
     Ip,
     UserAgent,
-    Referer,
+    Origin,
     UrlId,
     CreatedAt,
 }

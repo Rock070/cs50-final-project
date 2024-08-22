@@ -3,6 +3,7 @@ pub use sea_orm_migration::prelude::*;
 mod m20240811_211240_create_user_table;
 mod m20240811_211811_create_url_table;
 mod m20240811_135448_create_request_record_table;
+mod m20240822_165120_request_record_table_rename_column;
 mod tables;
 
 pub struct Migrator;
@@ -14,6 +15,7 @@ impl MigratorTrait for Migrator {
             Box::new(m20240811_211240_create_user_table::Migration),
             Box::new(m20240811_211811_create_url_table::Migration),
             Box::new(m20240811_135448_create_request_record_table::Migration),
+            Box::new(m20240822_165120_request_record_table_rename_column::Migration),
         ]
     }
 }
