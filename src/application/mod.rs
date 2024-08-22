@@ -7,6 +7,7 @@ use crate::{
     JwtHandlerSetting,
 };
 
+use std::net::SocketAddr;
 use axum::{
     routing::{get, post},
     Router,
@@ -48,7 +49,7 @@ impl Application {
 
         let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
 
-        axum::serve(listener, self.router).await.unwrap();
+        axum::serve(listener, self.router.into_make_service_with_connect_info::<SocketAddr>()).await.unwrap();
     }
 }
 
