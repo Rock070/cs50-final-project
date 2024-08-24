@@ -2,7 +2,7 @@ use axum::{
     body::Body,
     http::{Request, StatusCode},
 };
-use shor::{Application, get_configuration};
+use shor::{get_configuration, Application};
 use tower::ServiceExt;
 
 // TODO: 只建立一次app，然後在每個 test 中重複使用

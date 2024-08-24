@@ -1,11 +1,11 @@
 use chrono::Utc;
 
+use crate::ApplicationSetting;
 use jsonwebtoken::{
     decode, encode, errors::Result, Algorithm, DecodingKey, EncodingKey, Header, Validation,
 };
 use secrecy::{ExposeSecret, Secret};
 use serde::{Deserialize, Serialize};
-use crate::ApplicationSetting;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Claims {
@@ -29,7 +29,8 @@ impl JwtHandler {
     pub fn create_token(self, setting: &ApplicationSetting, user_name: &str) -> Result<String> {
         let claims = Claims {
             aud: user_name.to_owned(),
-            exp: (Utc::now() + chrono::Duration::minutes(self.expiration_time)).timestamp() as usize,
+            exp: (Utc::now() + chrono::Duration::minutes(self.expiration_time)).timestamp()
+                as usize,
             iat: Utc::now().timestamp() as usize,
             iss: format!("{} - {}", setting.name, setting.owner),
             nbf: Utc::now().timestamp() as usize,
@@ -40,7 +41,7 @@ impl JwtHandler {
         encode(
             &self.header,
             &claims,
-            &EncodingKey::from_rsa_pem(private_key.as_bytes())?
+            &EncodingKey::from_rsa_pem(private_key.as_bytes())?,
         )
     }
 
@@ -60,16 +61,16 @@ impl JwtHandler {
     }
 }
 
-// { 
-//     required_spec_claims: {"exp"}, 
-//     leeway: 60, 
-//     reject_tokens_expiring_in_less_than: 0, 
-//     validate_exp: true, 
-//     validate_nbf: false, 
-//     validate_aud: true, 
-//     aud: None, 
-//     iss: None, 
-//     sub: None, 
-//     algorithms: [RS256], 
-//     validate_signature: true 
+// {
+//     required_spec_claims: {"exp"},
+//     leeway: 60,
+//     reject_tokens_expiring_in_less_than: 0,
+//     validate_exp: true,
+//     validate_nbf: false,
+//     validate_aud: true,
+//     aud: None,
+//     iss: None,
+//     sub: None,
+//     algorithms: [RS256],
+//     validate_signature: true
 // }

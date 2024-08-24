@@ -1,20 +1,15 @@
 use crate::{
-    handlers::*,
-    Configuration,
-    DatabaseSetting,
-    JwtHandler, 
-    ApplicationSetting,
-    JwtHandlerSetting,
+    handlers::*, ApplicationSetting, Configuration, DatabaseSetting, JwtHandler, JwtHandlerSetting,
 };
 
-use std::net::SocketAddr;
 use axum::{
     routing::{get, post},
     Router,
 };
+use jsonwebtoken::{Algorithm, Header};
 use sea_orm::{Database, DatabaseConnection};
 use secrecy::ExposeSecret;
-use jsonwebtoken::{Algorithm, Header};
+use std::net::SocketAddr;
 
 pub struct Application {
     port: u16,
@@ -32,15 +27,15 @@ impl Application {
             // .route("/user", get(get_user))
             .route("/user/login", post(user_login))
             .route("/user/register", post(user_register))
-            .with_state(AppState { 
+            .with_state(AppState {
                 database,
                 jwt_handler,
                 application: config.application.clone(),
             });
 
-        Self { 
-            port: config.application.port, 
-            router 
+        Self {
+            port: config.application.port,
+            router,
         }
     }
 
@@ -49,20 +44,21 @@ impl Application {
 
         let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
 
-        axum::serve(listener, self.router.into_make_service_with_connect_info::<SocketAddr>()).await.unwrap();
+        axum::serve(
+            listener,
+            self.router
+                .into_make_service_with_connect_info::<SocketAddr>(),
+        )
+        .await
+        .unwrap();
     }
 }
 
-pub async fn get_database(
-    setting: &DatabaseSetting,
-) -> Result<DatabaseConnection, sea_orm::DbErr> {
+pub async fn get_database(setting: &DatabaseSetting) -> Result<DatabaseConnection, sea_orm::DbErr> {
     Database::connect(setting.connection_string().expose_secret()).await
 }
 
-
-pub fn get_jwt_handler(
-    setting: &JwtHandlerSetting,
-) -> JwtHandler {
+pub fn get_jwt_handler(setting: &JwtHandlerSetting) -> JwtHandler {
     JwtHandler {
         private_key: setting.private_key.clone(),
         header: Header::new(Algorithm::RS256),
@@ -70,7 +66,6 @@ pub fn get_jwt_handler(
         expiration_time: setting.expiration_time,
     }
 }
-
 
 #[derive(Debug, Clone)]
 pub struct AppState {

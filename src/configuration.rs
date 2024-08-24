@@ -1,14 +1,13 @@
-
-use std::env;
-use serde::{Deserialize, Deserializer};
 use config::Config;
-use secrecy::{Secret, ExposeSecret};
+use secrecy::{ExposeSecret, Secret};
+use serde::{Deserialize, Deserializer};
 use serde_aux::prelude::deserialize_number_from_string;
+use std::env;
 
 #[derive(Debug)]
 pub enum ENVIRONMENT {
-  DEVELOPMENT,
-  PRODUCTION,
+    DEVELOPMENT,
+    PRODUCTION,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -34,7 +33,7 @@ pub struct DatabaseSetting {
     #[serde(deserialize_with = "deserialize_secret")]
     pub password: Secret<String>,
     pub host: String,
-    #[serde(deserialize_with="deserialize_number_from_string")]
+    #[serde(deserialize_with = "deserialize_number_from_string")]
     pub port: i16,
 }
 
@@ -43,7 +42,7 @@ pub struct JwtHandlerSetting {
     #[serde(deserialize_with = "deserialize_secret")]
     pub private_key: Secret<String>,
     pub public_key: String,
-    #[serde(deserialize_with="deserialize_number_from_string")]
+    #[serde(deserialize_with = "deserialize_number_from_string")]
     pub expiration_time: i64,
 }
 
@@ -51,11 +50,11 @@ impl DatabaseSetting {
     pub fn connection_string(&self) -> Secret<String> {
         Secret::new(format!(
             "{}://{}:{}@{}:{}/{}",
-            self.db_type, 
-            self.user, 
-            self.password.expose_secret(), 
-            self.host, 
-            self.port, 
+            self.db_type,
+            self.user,
+            self.password.expose_secret(),
+            self.host,
+            self.port,
             self.name
         ))
     }
@@ -69,7 +68,6 @@ where
     let s = String::deserialize(deserializer)?;
     Ok(Secret::new(s))
 }
-
 
 pub fn get_configuration() -> Result<Configuration, config::ConfigError> {
     const DEFAULT_ENVIRONMENT: &str = "development";

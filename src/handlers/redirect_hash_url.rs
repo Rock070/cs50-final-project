@@ -1,15 +1,18 @@
-use crate::{application::AppState, entity::{urls, request_records}};
-use sea_orm::{ColumnTrait, EntityTrait, QueryFilter, ActiveValue};
-use axum_extra::{
-    TypedHeader,
-    headers::{UserAgent, Origin},
+use crate::{
+    application::AppState,
+    entity::{request_records, urls},
 };
+use axum_extra::{
+    headers::{Origin, UserAgent},
+    TypedHeader,
+};
+use sea_orm::{ActiveValue, ColumnTrait, EntityTrait, QueryFilter};
 use uuid::Uuid;
 
 use std::net::SocketAddr;
 
 use axum::{
-    extract::{Path, State, ConnectInfo},
+    extract::{ConnectInfo, Path, State},
     http::StatusCode,
     response::{IntoResponse, Redirect},
 };
@@ -21,10 +24,18 @@ pub async fn redirect_hash_url(
     ConnectInfo(header_connect_info): ConnectInfo<SocketAddr>,
     Path(path): Path<String>,
 ) -> Result<impl IntoResponse, (StatusCode, String)> {
-     // Log the additional informationq
+    // Log the additional informationq
     let connect_info = header_connect_info.clone();
-    let user_agent = if let Some(user_agent) = header_user_agent { user_agent.clone().to_string() } else {"".to_string()};
-    let origin = if let Some(origin) = header_origin { origin.clone().to_string() } else { "".to_string() };
+    let user_agent = if let Some(user_agent) = header_user_agent {
+        user_agent.clone().to_string()
+    } else {
+        "".to_string()
+    };
+    let origin = if let Some(origin) = header_origin {
+        origin.clone().to_string()
+    } else {
+        "".to_string()
+    };
 
     if !is_valid_path(&path) {
         return Err((StatusCode::BAD_REQUEST, format!("Invalid path: {}", path)));

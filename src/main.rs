@@ -1,4 +1,4 @@
-use shor::{Application, get_configuration};
+use shor::{get_configuration, Application};
 
 #[tokio::main]
 async fn main() {
