@@ -31,6 +31,8 @@ pub enum RequestRecords {
     Ip,
     UserAgent,
     Origin,
+    #[deprecated]
+    Referer,
     UrlId,
     CreatedAt,
 }

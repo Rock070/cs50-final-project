@@ -1,10 +1,13 @@
 use crate::{
     application::AppState,
-    domain::HashUrlBody,
+    domain::HashUrl,
     entity::{urls, users},
+    AppError,
+    BadRequestError,
+    AppHttpResponse,
 };
 
-use axum::{extract::State, http::StatusCode, Json};
+use axum::{extract::State, Json};
 use axum_extra::{
     headers::{authorization::Bearer, Authorization},
     TypedHeader,
@@ -15,15 +18,42 @@ use sha2::{Digest, Sha256};
 use uuid::Uuid;
 
 use jsonwebtoken::errors::ErrorKind;
+use utoipa::ToSchema;
+use serde::{Deserialize, Serialize};
 
+#[derive(Debug, Deserialize, ToSchema)]
+pub struct HashUrlRequest {
+    url: Option<String>,
+}
+
+#[derive(Debug, Serialize, ToSchema)]
+pub struct HashUrlResponse {
+    url: String,
+}
+
+#[utoipa::path(
+    post,
+    path = "/hash_url",
+    tag = "hash",
+    // security = "BearerAuth",
+    request_body(
+        content = HashUrlRequest,
+        content_type = "application/json",
+    ),
+    responses(
+        (status = 200, body = String),
+        (status = 400, body = String),
+        (status = 401, body = String),
+    )
+)]
 pub async fn hash_url(
     state: State<AppState>,
     authorization: Option<TypedHeader<Authorization<Bearer>>>,
-    Json(data): Json<HashUrlBody>,
-) -> Result<(StatusCode, String), (StatusCode, String)> {
-    let url_body = HashUrlBody::new(data.url).map_err(|e| {
+    Json(data): Json<HashUrlRequest>,
+) -> Result<Json<AppHttpResponse<HashUrlResponse>>, AppError> {
+    let url_body = HashUrl::new(data.url.unwrap_or("".to_string())).map_err(|e| {
         let error_message = format!("[無效的 URL] {}", e);
-        (StatusCode::BAD_REQUEST, error_message)
+        AppError::BadRequestError(BadRequestError(error_message))
     })?;
 
     let mut user_id = String::new();
@@ -39,10 +69,10 @@ pub async fn hash_url(
             Ok(claim) => claim,
             Err(err) => {
                 if err.into_kind() == ErrorKind::ExpiredSignature {
-                    return Ok((StatusCode::UNAUTHORIZED, "token is expired".to_string()));
+                    return Err(AppError::UnauthorizedError("token is expired".to_string()));
                 }
 
-                return Ok((StatusCode::UNAUTHORIZED, "token is invalid".to_string()));
+                return Err(AppError::UnauthorizedError("token is invalid".to_string()));
             }
         };
 
@@ -52,12 +82,11 @@ pub async fn hash_url(
             let users_column = users::Entity::find()
                 .filter(users::Column::Username.eq(&user_name))
                 .one(&state.database)
-                .await
-                .map_err(|_| (StatusCode::UNAUTHORIZED, "token is invalid".to_string()))?;
+                .await?;
 
             let user = match users_column {
                 Some(user) => user,
-                None => return Ok((StatusCode::UNAUTHORIZED, "token is invalid".to_string())),
+                None => return Err(AppError::UnauthorizedError("token is invalid".to_string())),
             };
 
             user_id = user.id.to_string();
@@ -69,10 +98,14 @@ pub async fn hash_url(
                         .and(urls::Column::UserId.eq(Uuid::parse_str(&user_id).unwrap())),
                 )
                 .one(&state.database)
-                .await
-                .map_err(|err| (StatusCode::INTERNAL_SERVER_ERROR, err.to_string()))?;
+                .await?;
+
             if let Some(url) = urls_column {
-                return Ok((StatusCode::OK, format!("縮短的 URL 是: {}", url.short_url)));
+                return Ok(Json(AppHttpResponse::new(
+                    "success".to_string(),
+                    "1".to_string(),
+                    Some(HashUrlResponse { url: url.short_url })
+                )));
             }
         }
     } else {
@@ -83,11 +116,14 @@ pub async fn hash_url(
                     .and(urls::Column::UserId.is_null()),
             )
             .one(&state.database)
-            .await
-            .map_err(|err| (StatusCode::INTERNAL_SERVER_ERROR, err.to_string()))?;
+            .await?;
 
         if let Some(url) = urls_column {
-            return Ok((StatusCode::OK, format!("縮短的 URL 是: {}", url.short_url)));
+            return Ok(Json(AppHttpResponse::new(
+                "success".to_string(),
+                "1".to_string(),
+                Some(HashUrlResponse { url: url.short_url })
+            )));
         }
     }
 
@@ -126,8 +162,11 @@ pub async fn hash_url(
 
     urls::Entity::insert(url)
         .exec(&state.database)
-        .await
-        .map_err(|e| (StatusCode::BAD_REQUEST, e.to_string()))?;
+        .await?;
 
-    Ok((StatusCode::OK, format!("縮短的 URL 是: {}", short_url)))
+    Ok(Json(AppHttpResponse::new(
+        "success".to_string(),
+        "1".to_string(),
+        Some(HashUrlResponse { url: short_url })
+    )))
 }

@@ -23,5 +23,7 @@ tokio = { version = "1.38.0", features = ["full"] }
 tokio-postgres = "0.7.11"
 tower = { version = "0.4.13", features = ["util"] }  
 tower-http = { version = "0.5.2", features = ["add-extension"] }
+utoipa = { version = "4.2.3", features = ["axum_extras", "uuid"] }
+utoipa-swagger-ui = { version = "7.1.0", features = ["axum"] }
 uuid = { version = "1.10.0", features = ["v4"] }
 validator = { version ="0.18.1", features = ["derive"] }
