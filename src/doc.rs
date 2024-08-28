@@ -1,13 +1,21 @@
-use crate::handlers::*;
+use crate::{
+  handlers::*,
+  HashUrlResponse,
+  AppHttpResponse,
+};
 
-use utoipa::OpenApi;
-
+use utoipa::{OpenApi, TupleUnit};
 
 #[derive(OpenApi)]
 #[openapi(
-  // paths(hash_url, redirect_url, user_login, user_register),
-  // components(schemas(HashUrlRequest, String, LoginPayload, RegisterPayload)),
   paths(hash_url),
-  components(schemas(HashUrlRequest)),
+  components(schemas(
+      HashUrlRequest, 
+      HashUrlResponse,
+      TupleUnit,
+      AppHttpResponse<HashUrlResponse>, 
+      AppHttpResponse<TupleUnit>
+    )
+  ),
 )]
 pub struct ApiDoc;

@@ -12,6 +12,7 @@ pub use application::*;
 pub use configuration::*;
 pub use domain::*;
 pub use entity::*;
+pub use handlers::*;
 pub use utility::*;
 pub use doc::*;
 pub use error::*;

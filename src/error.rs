@@ -3,10 +3,12 @@ use axum::{
     http::StatusCode,
     Json,
 };
-use serde::Serialize;
 use serde_json::json;
 use sea_orm::error::DbErr;
+use crate::{HttpResponseCode, AppHttpResponse};
 
+
+#[derive(Debug)]
 pub enum AppError {
     UnauthorizedError(String),
     BadRequestError(BadRequestError),
@@ -20,13 +22,13 @@ impl IntoResponse for AppError {
         let internal_server_error_message = String::from("An unexpected error occurred. Please try again later.");
 
         let (status, code, message) = match self {
-            AppError::UnauthorizedError(error) => (StatusCode::UNAUTHORIZED, "000001".to_string(), error),
-            AppError::BadRequestError(error) => (StatusCode::BAD_REQUEST, "000002".to_string(), error.0),
-            AppError::DatabaseError(_) => (StatusCode::INTERNAL_SERVER_ERROR, "000003".to_string(), internal_server_error_message.clone()),
-            AppError::InternalServerError(error) => (StatusCode::INTERNAL_SERVER_ERROR, "000004".to_string(), format!("{}\n{}", &internal_server_error_message, error)),
+            AppError::UnauthorizedError(error) => (StatusCode::UNAUTHORIZED, HttpResponseCode::Unauthorized.to_str(), error),
+            AppError::BadRequestError(error) => (StatusCode::BAD_REQUEST, HttpResponseCode::BadRequest.to_str(), error.0),
+            AppError::DatabaseError(_) => (StatusCode::INTERNAL_SERVER_ERROR, HttpResponseCode::DatabaseError.to_str(), internal_server_error_message.clone()),
+            AppError::InternalServerError(error) => (StatusCode::INTERNAL_SERVER_ERROR, HttpResponseCode::InternalServerError.to_str(), format!("{}\n{}", &internal_server_error_message, error)),
         };
 
-        let body = Json(json!(AppHttpResponse::<()>::new(message, code, None)));
+        let body = Json(json!(AppHttpResponse::<()>::new(message, code.to_string(), None)));
 
         (status, body).into_response()
     }
@@ -47,15 +49,8 @@ impl From<DbErr> for AppError {
     }
 }
 
-#[derive(Serialize)]
-pub struct AppHttpResponse<T: Serialize> {
-    message: String,
-    code: String,
-    data: Option<T>,
-}
-
-impl<T: Serialize> AppHttpResponse<T> {
-    pub fn new(message: String, code: String, data: Option<T>) -> Self {
-        Self { message, code, data }
+impl From<String> for BadRequestError {
+    fn from(error: String) -> Self {
+        BadRequestError(error)
     }
 }

@@ -1,10 +1,8 @@
 use crate::{
     application::AppState,
-    domain::HashUrl,
+    domain::Url,
     entity::{urls, users},
-    AppError,
-    BadRequestError,
-    AppHttpResponse,
+    AppError, AppHttpResponse, BadRequestError, HashUrl, HttpResponseCode,
 };
 
 use axum::{extract::State, Json};
@@ -18,8 +16,8 @@ use sha2::{Digest, Sha256};
 use uuid::Uuid;
 
 use jsonwebtoken::errors::ErrorKind;
-use utoipa::ToSchema;
 use serde::{Deserialize, Serialize};
+use utoipa::ToSchema;
 
 #[derive(Debug, Deserialize, ToSchema)]
 pub struct HashUrlRequest {
@@ -35,15 +33,15 @@ pub struct HashUrlResponse {
     post,
     path = "/hash_url",
     tag = "hash",
-    // security = "BearerAuth",
     request_body(
         content = HashUrlRequest,
         content_type = "application/json",
+        example = json!({"url": "https://www.example.com"})
     ),
     responses(
-        (status = 200, body = String),
-        (status = 400, body = String),
-        (status = 401, body = String),
+        (status = 200, description = HttpResponseCode::Success.to_message(), body = AppHttpResponseHashUrlResponse, example = json!({"message": HttpResponseCode::Success.to_message(), "code": HttpResponseCode::Success.to_str(), "data": {"url": "https://shor.cc/Qhq1TQ2nVI"}})),
+        (status = 400, description = HttpResponseCode::BadRequest.to_message(), body = AppHttpResponseNone, example = json!({"message": HttpResponseCode::BadRequest.to_message(), "code": HttpResponseCode::BadRequest.to_str(), "data": null})),
+        (status = 401, description = HttpResponseCode::Unauthorized.to_message(), body = AppHttpResponseNone, example = json!({"message": HttpResponseCode::Unauthorized.to_message(), "code": HttpResponseCode::Unauthorized.to_str(), "data": null})),
     )
 )]
 pub async fn hash_url(
@@ -51,10 +49,7 @@ pub async fn hash_url(
     authorization: Option<TypedHeader<Authorization<Bearer>>>,
     Json(data): Json<HashUrlRequest>,
 ) -> Result<Json<AppHttpResponse<HashUrlResponse>>, AppError> {
-    let url_body = HashUrl::new(data.url.unwrap_or("".to_string())).map_err(|e| {
-        let error_message = format!("[無效的 URL] {}", e);
-        AppError::BadRequestError(BadRequestError(error_message))
-    })?;
+    let new_url = HashUrl::try_from(data)?;
 
     let mut user_id = String::new();
 
@@ -94,7 +89,7 @@ pub async fn hash_url(
             let urls_column = urls::Entity::find()
                 .filter(
                     urls::Column::Url
-                        .eq(url_body.url.clone())
+                        .eq(&new_url.url.0)
                         .and(urls::Column::UserId.eq(Uuid::parse_str(&user_id).unwrap())),
                 )
                 .one(&state.database)
@@ -102,9 +97,9 @@ pub async fn hash_url(
 
             if let Some(url) = urls_column {
                 return Ok(Json(AppHttpResponse::new(
-                    "success".to_string(),
-                    "1".to_string(),
-                    Some(HashUrlResponse { url: url.short_url })
+                    HttpResponseCode::Success.to_message().to_string(),
+                    HttpResponseCode::Success.to_str().to_string(),
+                    Some(HashUrlResponse { url: url.short_url }),
                 )));
             }
         }
@@ -112,7 +107,7 @@ pub async fn hash_url(
         let urls_column = urls::Entity::find()
             .filter(
                 urls::Column::Url
-                    .eq(&url_body.url)
+                    .eq(&new_url.url.0)
                     .and(urls::Column::UserId.is_null()),
             )
             .one(&state.database)
@@ -120,16 +115,16 @@ pub async fn hash_url(
 
         if let Some(url) = urls_column {
             return Ok(Json(AppHttpResponse::new(
-                "success".to_string(),
-                "1".to_string(),
-                Some(HashUrlResponse { url: url.short_url })
+                HttpResponseCode::Success.to_message().to_string(),
+                HttpResponseCode::Success.to_str().to_string(),
+                Some(HashUrlResponse { url: url.short_url }),
             )));
         }
     }
 
     // 使用 SHA-256 對 URL 進行哈希
     let mut hasher = Sha256::new();
-    let raw_url = format!("{}{}", user_id.clone(), url_body.url);
+    let raw_url = format!("{}{}", user_id.clone(), &new_url.url.0);
     hasher.update(raw_url.as_bytes());
     let result = hasher.finalize();
 
@@ -149,7 +144,7 @@ pub async fn hash_url(
 
     let url = urls::ActiveModel {
         id: ActiveValue::Set(Uuid::new_v4()),
-        url: ActiveValue::Set(url_body.url),
+        url: ActiveValue::Set(new_url.url.0),
         user_id: if user_id.is_some() {
             ActiveValue::Set(user_id)
         } else {
@@ -160,13 +155,21 @@ pub async fn hash_url(
         ..Default::default()
     };
 
-    urls::Entity::insert(url)
-        .exec(&state.database)
-        .await?;
+    urls::Entity::insert(url).exec(&state.database).await?;
 
     Ok(Json(AppHttpResponse::new(
-        "success".to_string(),
-        "1".to_string(),
-        Some(HashUrlResponse { url: short_url })
+        HttpResponseCode::Success.to_message().to_string(),
+        HttpResponseCode::Success.to_str().to_string(),
+        Some(HashUrlResponse { url: format!("{}{}", &state.application.base_url, &short_url) }),
     )))
+}
+
+impl TryFrom<HashUrlRequest> for HashUrl {
+    type Error = BadRequestError;
+
+    fn try_from(value: HashUrlRequest) -> Result<Self, BadRequestError> {
+        let url = Url::parse(value.url.unwrap_or_default())?;
+
+        Ok(HashUrl { url })
+    }
 }
