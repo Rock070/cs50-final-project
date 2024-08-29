@@ -1,12 +1,12 @@
+use crate::{AppHttpResponse, HttpResponseCode};
 use axum::{
-    response::{IntoResponse, Response},
     http::StatusCode,
+    response::{IntoResponse, Response},
     Json,
 };
-use serde_json::json;
 use sea_orm::error::DbErr;
-use crate::{HttpResponseCode, AppHttpResponse};
-
+use serde_json::json;
+use tracing::{error, warn};
 
 #[derive(Debug)]
 pub enum AppError {
@@ -16,19 +16,45 @@ pub enum AppError {
     InternalServerError(String),
 }
 
-
 impl IntoResponse for AppError {
     fn into_response(self) -> Response {
-        let internal_server_error_message = String::from("An unexpected error occurred. Please try again later.");
+        let internal_server_error_message =
+            String::from("An unexpected error occurred. Please try again later.");
 
         let (status, code, message) = match self {
-            AppError::UnauthorizedError(error) => (StatusCode::UNAUTHORIZED, HttpResponseCode::Unauthorized.to_str(), error),
-            AppError::BadRequestError(error) => (StatusCode::BAD_REQUEST, HttpResponseCode::BadRequest.to_str(), error.0),
-            AppError::DatabaseError(_) => (StatusCode::INTERNAL_SERVER_ERROR, HttpResponseCode::DatabaseError.to_str(), internal_server_error_message.clone()),
-            AppError::InternalServerError(error) => (StatusCode::INTERNAL_SERVER_ERROR, HttpResponseCode::InternalServerError.to_str(), format!("{}\n{}", &internal_server_error_message, error)),
+            AppError::UnauthorizedError(error) => (
+                StatusCode::UNAUTHORIZED,
+                HttpResponseCode::Unauthorized.to_str(),
+                error,
+            ),
+            AppError::BadRequestError(error) => (
+                StatusCode::BAD_REQUEST,
+                HttpResponseCode::BadRequest.to_str(),
+                error.0,
+            ),
+            AppError::DatabaseError(_) => (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                HttpResponseCode::DatabaseError.to_str(),
+                internal_server_error_message.clone(),
+            ),
+            AppError::InternalServerError(error) => (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                HttpResponseCode::InternalServerError.to_str(),
+                format!("{}\n{}", &internal_server_error_message, error),
+            ),
         };
 
-        let body = Json(json!(AppHttpResponse::<()>::new(message, code.to_string(), None)));
+        if status == StatusCode::INTERNAL_SERVER_ERROR {
+            error!("[AppError]{}{}: {}", status, code, message)
+        } else {
+            warn!("{}{}: {}", status, code, message)
+        }
+
+        let body = Json(json!(AppHttpResponse::<()>::new(
+            message,
+            code.to_string(),
+            None
+        )));
 
         (status, body).into_response()
     }

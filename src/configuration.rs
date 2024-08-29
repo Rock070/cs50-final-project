@@ -23,6 +23,7 @@ pub struct ApplicationSetting {
     pub port: u16,
     pub owner: String,
     pub name: String,
+    pub logging_levels: Vec<String>,
 }
 
 #[derive(Debug, Deserialize, Clone)]

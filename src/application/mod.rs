@@ -1,6 +1,6 @@
 use crate::{
-    handlers::*, ApplicationSetting, Configuration, DatabaseSetting, JwtHandler, JwtHandlerSetting,
-    ApiDoc,
+    handlers::*, ApiDoc, ApplicationSetting, Configuration, DatabaseSetting, JwtHandler,
+    JwtHandlerSetting,
 };
 
 use axum::{
@@ -10,9 +10,10 @@ use axum::{
 use jsonwebtoken::{Algorithm, Header};
 use sea_orm::{Database, DatabaseConnection};
 use secrecy::ExposeSecret;
+use std::net::SocketAddr;
+use tower_http::trace::TraceLayer;
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
-use std::net::SocketAddr;
 
 pub struct Application {
     port: u16,
@@ -30,6 +31,7 @@ impl Application {
             .route("/user/login", post(user_login))
             .route("/user/register", post(user_register))
             .merge(SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", ApiDoc::openapi()))
+            .layer(TraceLayer::new_for_http())
             .with_state(AppState {
                 database,
                 jwt_handler,

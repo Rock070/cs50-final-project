@@ -160,7 +160,9 @@ pub async fn hash_url(
     Ok(Json(AppHttpResponse::new(
         HttpResponseCode::Success.to_message().to_string(),
         HttpResponseCode::Success.to_str().to_string(),
-        Some(HashUrlResponse { url: format!("{}{}", &state.application.base_url, &short_url) }),
+        Some(HashUrlResponse {
+            url: format!("{}{}", &state.application.base_url, &short_url),
+        }),
     )))
 }
 

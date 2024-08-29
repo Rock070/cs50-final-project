@@ -7,6 +7,7 @@ mod utility;
 mod doc;
 mod error;
 mod http;
+mod telemetry;
 
 pub use application::*;
 pub use configuration::*;
@@ -17,3 +18,4 @@ pub use utility::*;
 pub use doc::*;
 pub use error::*;
 pub use http::*;
+pub use telemetry::*;
