@@ -2,4 +2,5 @@
 .env
 configuration/development.yml
 configuration/production.yml
+configuration/test.yml
 .DS_Store
