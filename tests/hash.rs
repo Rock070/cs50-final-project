@@ -20,7 +20,7 @@ mod test_hash_url {
             .oneshot(
                 Request::builder()
                     .method("POST")
-                    .uri("/hash_url")
+                    .uri("/hash-url")
                     .header("Content-Type", "application/json")
                     .body(Body::from(r#"{"url": "https://google.com"}"#))
                     .unwrap(),
@@ -49,12 +49,41 @@ mod test_redirect {
 
     #[tokio::test]
     async fn valid() {
-        let app = common::setup().await;
-        let response = app
+        let app_hash = common::setup().await;
+
+        let response = app_hash
             .router
             .oneshot(
                 Request::builder()
-                    .uri("/Qhq1TQ2nVI")
+                    .method("POST")
+                    .uri("/hash-url")
+                    .header("Content-Type", "application/json")
+                    .body(Body::from(r#"{"url": "https://www.apple.com"}"#))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), 200);
+        let body_bytes = to_bytes(response.into_body(), usize::MAX).await.unwrap();
+        let body: serde_json::Value = serde_json::from_slice(&body_bytes).unwrap();
+        assert_eq!(
+            body,
+            json!({
+                "message": "success",
+                "code": "1",
+                "data": {
+                    "url": format!("{}{}", app_hash.application.base_url, "9uPcJsmzjF8")
+                }
+            })
+        );
+
+        let app_redirect = common::setup().await;
+        let response = app_redirect
+            .router
+            .oneshot(
+                Request::builder()
+                    .uri("/9uPcJsmzjF8")
                     .method("GET")
                     .body(Body::empty())
                     .expect("Failed to build request."),
