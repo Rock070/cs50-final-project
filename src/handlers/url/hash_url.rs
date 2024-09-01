@@ -32,9 +32,9 @@ pub struct HashUrlResponse {
 /// 2.1.1.2 產生短網址
 #[utoipa::path(
     post,
-    path = "/hash_url",
+    path = "/hash-url",
     tag = "url",
-    operation_id = "hash_url",
+    operation_id = "hash-url",
     request_body(
         content = HashUrlRequest,
         description = "Hash URL request",
