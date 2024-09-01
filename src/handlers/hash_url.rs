@@ -2,7 +2,7 @@ use crate::{
     application::AppState,
     domain::Url,
     entity::{urls, users},
-    AppError, AppHttpResponse, BadRequestError, HashUrl, HttpResponseCode,
+    AppError, AppHttpResponse, BadRequestError, HttpResponseCode,
 };
 
 use axum::{extract::State, Json};
@@ -29,12 +29,15 @@ pub struct HashUrlResponse {
     url: String,
 }
 
+/// 2.1.1.2 產生短網址
 #[utoipa::path(
     post,
     path = "/hash_url",
-    tag = "hash",
+    tag = "url",
+    operation_id = "hash_url",
     request_body(
         content = HashUrlRequest,
+        description = "Hash URL request",
         content_type = "application/json",
         example = json!({"url": "https://www.example.com"})
     ),
@@ -49,7 +52,7 @@ pub async fn hash_url(
     authorization: Option<TypedHeader<Authorization<Bearer>>>,
     Json(data): Json<HashUrlRequest>,
 ) -> Result<Json<AppHttpResponse<HashUrlResponse>>, AppError> {
-    let new_url = HashUrl::try_from(data)?;
+    let new_url = Url::try_from(data)?.0;
 
     let mut user_id = String::new();
 
@@ -89,7 +92,7 @@ pub async fn hash_url(
             let urls_column = urls::Entity::find()
                 .filter(
                     urls::Column::Url
-                        .eq(&new_url.url.0)
+                        .eq(&new_url)
                         .and(urls::Column::UserId.eq(Uuid::parse_str(&user_id).unwrap())),
                 )
                 .one(&state.database)
@@ -99,7 +102,9 @@ pub async fn hash_url(
                 return Ok(Json(AppHttpResponse::new(
                     HttpResponseCode::Success.to_message().to_string(),
                     HttpResponseCode::Success.to_str().to_string(),
-                    Some(HashUrlResponse { url: url.short_url }),
+                    Some(HashUrlResponse {
+                        url: format!("{}{}", &state.application.base_url, &url.short_url),
+                    }),
                 )));
             }
         }
@@ -107,7 +112,7 @@ pub async fn hash_url(
         let urls_column = urls::Entity::find()
             .filter(
                 urls::Column::Url
-                    .eq(&new_url.url.0)
+                    .eq(&new_url)
                     .and(urls::Column::UserId.is_null()),
             )
             .one(&state.database)
@@ -117,14 +122,16 @@ pub async fn hash_url(
             return Ok(Json(AppHttpResponse::new(
                 HttpResponseCode::Success.to_message().to_string(),
                 HttpResponseCode::Success.to_str().to_string(),
-                Some(HashUrlResponse { url: url.short_url }),
+                Some(HashUrlResponse {
+                    url: format!("{}{}", &state.application.base_url, &url.short_url),
+                }),
             )));
         }
     }
 
     // 使用 SHA-256 對 URL 進行哈希
     let mut hasher = Sha256::new();
-    let raw_url = format!("{}{}", user_id.clone(), &new_url.url.0);
+    let raw_url = format!("{}{}", user_id.clone(), &new_url);
     hasher.update(raw_url.as_bytes());
     let result = hasher.finalize();
 
@@ -144,7 +151,7 @@ pub async fn hash_url(
 
     let url = urls::ActiveModel {
         id: ActiveValue::Set(Uuid::new_v4()),
-        url: ActiveValue::Set(new_url.url.0),
+        url: ActiveValue::Set(new_url),
         user_id: if user_id.is_some() {
             ActiveValue::Set(user_id)
         } else {
@@ -166,12 +173,12 @@ pub async fn hash_url(
     )))
 }
 
-impl TryFrom<HashUrlRequest> for HashUrl {
+impl TryFrom<HashUrlRequest> for Url {
     type Error = BadRequestError;
 
-    fn try_from(value: HashUrlRequest) -> Result<Self, BadRequestError> {
-        let url = Url::parse(value.url.unwrap_or_default())?;
+    fn try_from(value: HashUrlRequest) -> Result<Url, BadRequestError> {
+        let url = Url::parse_url(value.url.unwrap_or_default())?;
 
-        Ok(HashUrl { url })
+        Ok(url)
     }
 }

@@ -16,13 +16,15 @@ use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
 
 pub struct Application {
-    port: u16,
+    pub application: ApplicationSetting,
     pub router: Router,
 }
 
 impl Application {
     pub async fn build(config: &Configuration) -> Self {
-        let database = get_database(&config.database).await.unwrap();
+        let database = get_database(&config.database)
+            .await
+            .expect("Failed to connect to database");
         let jwt_handler = get_jwt_handler(&config.jwt_handler);
 
         let router = Router::new()
@@ -39,13 +41,13 @@ impl Application {
             });
 
         Self {
-            port: config.application.port,
+            application: config.application.clone(),
             router,
         }
     }
 
     pub async fn run(self) {
-        let addr = std::net::SocketAddr::from(([0, 0, 0, 0], self.port));
+        let addr = std::net::SocketAddr::from(([0, 0, 0, 0], self.application.port));
 
         let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
 

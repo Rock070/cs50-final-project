@@ -3,8 +3,14 @@ use validator::ValidateUrl;
 #[derive(Debug, Clone)]
 pub struct Url(pub String);
 
+#[derive(Debug, Clone)]
+pub struct HashPath(pub String);
+
+#[derive(Debug, Clone)]
+pub struct UrlPath(pub String);
+
 impl Url {
-    pub fn parse(url: String) -> Result<Self, String> {
+    pub fn parse_url(url: String) -> Result<Self, String> {
         if ValidateUrl::validate_url(&url) {
             return Ok(Self(url));
         }
@@ -13,9 +19,17 @@ impl Url {
     }
 }
 
-#[derive(Debug, Clone)]
-pub struct HashUrl {
-    pub url: Url,
+impl HashPath {
+    pub fn parse_path(path: String) -> Result<Self, String> {
+        if path
+            .chars()
+            .all(|c| c.is_ascii_alphabetic() || c.is_ascii_digit())
+        {
+            return Ok(Self(path));
+        }
+
+        Err("Invalid URL path".to_string())
+    }
 }
 
 #[cfg(test)]
@@ -25,7 +39,7 @@ mod tests {
     #[test]
     fn test_new_valid_url() {
         let url = "https://www.google.com".to_string();
-        let result = Url::parse(url);
+        let result = Url::parse_url(url);
         assert!(result.is_ok());
     }
 
@@ -33,9 +47,16 @@ mod tests {
     fn test_new_invalid_url() {
         let url1 = "invalid_url".to_string();
         let url2 = "google.com".to_string();
-        let url3 = "https:asd/s/google.com".to_string();
-        assert!(Url::parse(url1).is_err());
-        assert!(Url::parse(url2).is_err());
-        assert!(Url::parse(url3).is_err());
+        let url3 = "https/s/google.com".to_string();
+        assert!(Url::parse_url(url1).is_err());
+        assert!(Url::parse_url(url2).is_err());
+        assert!(Url::parse_url(url3).is_err());
+    }
+
+    #[test]
+    fn test_path() {
+        assert!(HashPath::parse_path(String::from("abc")).is_ok());
+        assert!(HashPath::parse_path(String::from("a1b2")).is_ok());
+        assert!(HashPath::parse_path(String::from("a1b2!")).is_err());
     }
 }

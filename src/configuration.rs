@@ -35,7 +35,7 @@ pub struct DatabaseSetting {
     pub password: Secret<String>,
     pub host: String,
     #[serde(deserialize_with = "deserialize_number_from_string")]
-    pub port: i16,
+    pub port: u16,
 }
 
 #[derive(Debug, Deserialize, Clone)]

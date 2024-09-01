@@ -1,6 +1,7 @@
 use crate::{
     application::AppState,
     entity::{request_records, urls},
+    AppError, BadRequestError, HashPath,
 };
 use axum_extra::{
     headers::{Origin, UserAgent},
@@ -13,76 +14,72 @@ use std::net::SocketAddr;
 
 use axum::{
     extract::{ConnectInfo, Path, State},
-    http::StatusCode,
-    response::{IntoResponse, Redirect},
+    response::Redirect,
 };
 
+type HashUrlRequest = String;
+
+/// 2.1.1.2 轉導短網址至原網址
+#[utoipa::path(
+    get,
+    path = "/{path}",
+    tag = "url",
+    responses(
+        (status = 302, description = "Redirect to the original URL"),
+        (status = 400, description = "Bad request")
+    )
+)]
 pub async fn redirect_hash_url(
     state: State<AppState>,
     header_user_agent: Option<TypedHeader<UserAgent>>,
     header_origin: Option<TypedHeader<Origin>>,
-    ConnectInfo(header_connect_info): ConnectInfo<SocketAddr>,
-    Path(path): Path<String>,
-) -> Result<impl IntoResponse, (StatusCode, String)> {
-    // Log the additional informationq
-    let connect_info = header_connect_info.clone();
-    let user_agent = if let Some(user_agent) = header_user_agent {
-        user_agent.clone().to_string()
-    } else {
-        "".to_string()
-    };
-    let origin = if let Some(origin) = header_origin {
-        origin.clone().to_string()
-    } else {
-        "".to_string()
-    };
+    connect_info: Option<ConnectInfo<SocketAddr>>,
+    Path(path): Path<HashUrlRequest>,
+) -> Result<Redirect, AppError> {
+    let info = connect_info
+        .map(|ConnectInfo(addr)| addr.to_string())
+        .unwrap_or_else(|| "unkown".to_string());
 
-    if !is_valid_path(&path) {
-        return Err((StatusCode::BAD_REQUEST, format!("Invalid path: {}", path)));
-    }
+    let user_agent = header_user_agent
+        .map(|ua| ua.to_string())
+        .unwrap_or_default();
+    let origin = header_origin.map(|o| o.to_string()).unwrap_or_default();
+
+    let path = HashPath::try_from(path)?.0;
 
     let column = urls::Entity::find()
         .filter(urls::Column::ShortUrl.eq(path))
         .one(&state.database)
-        .await
-        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+        .await?;
 
     if let Some(model) = column {
         let request_record = request_records::ActiveModel {
             id: ActiveValue::Set(Uuid::new_v4()),
             user_agent: ActiveValue::set(user_agent.clone()),
             origin: ActiveValue::set(Some(origin.clone())),
-            ip: ActiveValue::set(connect_info.to_string()),
+            ip: ActiveValue::set(info.to_string()),
             url_id: ActiveValue::set(model.id),
             ..Default::default()
         };
 
         request_records::Entity::insert(request_record)
             .exec(&state.database)
-            .await
-            .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+            .await?;
 
         return Ok(Redirect::temporary(&model.url));
     }
 
-    Err((StatusCode::NOT_FOUND, "Not found".to_string()))
+    Err(AppError::BadRequestError(BadRequestError::from(
+        "Not found".to_string(),
+    )))
 }
 
-/**
- * validate path only include base62 characters [0-9a-zA-Z]
- */
-fn is_valid_path(path: &str) -> bool {
-    path.chars()
-        .all(|c| c.is_ascii_alphabetic() || c.is_ascii_digit())
-}
+impl TryFrom<HashUrlRequest> for HashPath {
+    type Error = BadRequestError;
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    #[test]
-    fn test_is_valid_path() {
-        assert_eq!(is_valid_path("abc"), true);
-        assert_eq!(is_valid_path("a1b2"), true);
-        assert_eq!(is_valid_path("a1b2!"), false);
+    fn try_from(value: String) -> Result<Self, BadRequestError> {
+        let path = HashPath::parse_path(value)?;
+
+        Ok(path)
     }
 }
