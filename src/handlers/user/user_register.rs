@@ -46,7 +46,7 @@ pub struct RegisterResponseData {
 /// 1.1.1.1 使用者註冊
 #[utoipa::path(
     post,
-    path = "/user/register",
+    path = "/api/user/register",
     tag = "user",
     request_body(
         content = RegisterRequest,

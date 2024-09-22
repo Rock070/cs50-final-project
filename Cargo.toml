@@ -27,7 +27,7 @@ testcontainers-modules = { version = "0.9.0", features = ["postgres", "minio"] }
 tokio = { version = "1.38.0", features = ["full"] }
 tokio-postgres = "0.7.11"
 tower = { version = "0.4.13", features = ["util"] }
-tower-http = { version = "0.5.2", features = ["add-extension", "trace"] }
+tower-http = { version = "0.5.2", features = ["add-extension", "cors", "trace"] }
 tracing = "0.1.40"
 tracing-subscriber = { version = "0.3.18", features = ["env-filter", "json"] }
 utoipa = { version = "4.2.3", features = ["axum_extras", "uuid"] }
