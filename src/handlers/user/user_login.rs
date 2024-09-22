@@ -32,7 +32,7 @@ pub struct LoginResponseData {
 /// 1.1.1.2 使用者登入
 #[utoipa::path(
     post,
-    path = "/user/login",
+    path = "/api/user/login",
     tag= "user",
     request_body(
         content = LoginRequest,

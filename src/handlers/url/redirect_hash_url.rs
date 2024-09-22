@@ -22,7 +22,7 @@ type HashUrlRequest = String;
 /// 2.1.1.2 轉導短網址至原網址
 #[utoipa::path(
     get,
-    path = "/{path}",
+    path = "/api/{path}",
     tag = "url",
     responses(
         (status = 302, description = "Redirect to the original URL"),

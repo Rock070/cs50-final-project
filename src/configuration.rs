@@ -23,6 +23,7 @@ pub struct ApplicationSetting {
     pub port: u16,
     pub owner: String,
     pub name: String,
+    pub cors_base_url: Vec<String>,
     pub logging_levels: Vec<String>,
 }
 

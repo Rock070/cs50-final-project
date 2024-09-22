@@ -6,11 +6,18 @@ use crate::{
 use axum::{
     routing::{get, post},
     Router,
+    http::{
+        HeaderValue, 
+        Method,
+        header::{ACCEPT, AUTHORIZATION, CONTENT_TYPE}
+    },
 };
+
 use jsonwebtoken::{Algorithm, Header};
 use sea_orm::{Database, DatabaseConnection};
 use secrecy::ExposeSecret;
 use std::net::SocketAddr;
+use tower_http::cors::CorsLayer;
 use tower_http::trace::TraceLayer;
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
@@ -26,13 +33,15 @@ impl Application {
             .await
             .expect("Failed to connect to database");
         let jwt_handler = get_jwt_handler(&config.jwt_handler);
+        let cors = get_cors_layer(&config.application);
 
         let router = Router::new()
-            .route("/*path", get(redirect_hash_url))
-            .route("/hash-url", post(hash_url))
-            .route("/user/login", post(user_login))
-            .route("/user/register", post(user_register))
+            .route("/api/*path", get(redirect_hash_url))
+            .route("/api/hash-url", post(hash_url))
+            .route("/api/user/login", post(user_login))
+            .route("/api/user/register", post(user_register))
             .merge(SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", ApiDoc::openapi()))
+            .layer(cors)
             .layer(TraceLayer::new_for_http())
             .with_state(AppState {
                 database,
@@ -74,9 +83,26 @@ pub fn get_jwt_handler(setting: &JwtHandlerSetting) -> JwtHandler {
     }
 }
 
+pub fn get_cors_layer(setting: &ApplicationSetting) -> CorsLayer {
+    CorsLayer::new()
+        .allow_origin(
+            setting
+                .cors_base_url
+                .iter()
+                .map(|url| url.parse().unwrap())
+                .collect::<Vec<HeaderValue>>(),
+
+        )
+        .allow_methods([Method::GET, Method::POST])
+        .allow_headers([AUTHORIZATION, CONTENT_TYPE, ACCEPT])
+        .allow_credentials(true)
+}
+
 #[derive(Debug, Clone)]
 pub struct AppState {
     pub database: DatabaseConnection,
     pub jwt_handler: JwtHandler,
     pub application: ApplicationSetting,
 }
+
+
