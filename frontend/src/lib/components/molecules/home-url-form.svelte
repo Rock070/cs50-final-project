@@ -35,7 +35,6 @@
         },
       })
         .then(res => {
-          console.log("🚀 ~ onUpdate ~ res:", res)
           shortenUrl = res.data.url
           status = Status.Success
         })
@@ -59,12 +58,14 @@
 >
   <Form.Field {form} name="url">
    <Form.Control let:attrs>
-    <Form.Label>url</Form.Label>
-    <Input {...attrs} bind:value={$formData.url} placeholder="Please enter a valid URL to shorten."/>
+    <Form.Label>Shorten your URL</Form.Label>
+    <Input {...attrs} bind:value={$formData.url} placeholder="Enter the url here"/>
    </Form.Control>
    <Form.FieldErrors />
   </Form.Field>
-  <Form.Button>Submit</Form.Button>
+  <div class="flex justify-end mt-3">
+    <Form.Button>Shorten</Form.Button>
+  </div>
  </form>
 
  <StatusDialog 
@@ -76,7 +77,16 @@
     <div
       class="flex justify-between"
     >
-      <span>your shorten url is: {shortenUrl}</span>
+      <span>your shorten URL is</span>
+      <br />
+      <a 
+        href={shortenUrl} 
+        target="_blank"
+        rel="noopener noreferrer"
+        class="text-blue-400"
+      >
+        {shortenUrl}
+      </a>
       <Copy text={shortenUrl} />
     </div>
     {:else if status = Status.Error}

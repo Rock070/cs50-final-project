@@ -43,7 +43,7 @@ pub struct RegisterResponseData {
     pub username: String,
 }
 
-/// 1.1.1.1 使用者註冊
+/// 1.1.1.3 使用者註冊
 #[utoipa::path(
     post,
     path = "/api/user/register",

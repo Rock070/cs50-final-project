@@ -38,9 +38,11 @@
 		"vite": "^5.0.3"
 	},
 	"dependencies": {
+		"@types/js-cookie": "^3.0.6",
 		"bits-ui": "^0.21.13",
 		"clsx": "^2.1.1",
 		"formsnap": "^1.0.1",
+		"js-cookie": "^3.0.5",
 		"lucide-svelte": "^0.445.0",
 		"ofetch": "^1.4.0",
 		"sveltekit-superforms": "^2.18.1",

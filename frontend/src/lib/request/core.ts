@@ -1,7 +1,7 @@
 import { createFetch } from 'ofetch';
 import type { Response } from '$lib/type';
 import { API_CODE } from '$lib/constant';
-// import { useRequestHandler, useResponseHandler } from './interceptor';
+import { useRequestHandler, useResponseHandler } from './interceptor';
 
 import type { FetchOptions } from 'ofetch';
 
@@ -26,8 +26,8 @@ export default async <T = unknown>(url: string, fetchOptions?: FetchOptions): Pr
 	return await fetchInstance(url, {
 		baseURL,
 		retry: 0,
-		// onResponse: useResponseHandler,
-		// onRequest: useRequestHandler,
+		onResponse: useResponseHandler,
+		onRequest: useRequestHandler,
 		...fetchOptions,
 	})
 		.then((response: Response<T>) => {

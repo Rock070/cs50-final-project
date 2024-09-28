@@ -29,7 +29,7 @@ pub struct LoginResponseData {
     pub email: String,
 }
 
-/// 1.1.1.2 使用者登入
+/// 1.1.1.3 使用者登入
 #[utoipa::path(
     post,
     path = "/api/user/login",

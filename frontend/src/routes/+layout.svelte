@@ -1,6 +1,21 @@
-<script>
+<script lang="ts">
 	import { page } from '$app/stores'
 	import '../app.css';
+	import Icon from '@iconify/svelte'
+	import Cookie from 'js-cookie'
+	import { userStore } from '$lib/store/user'
+	import { request } from "$lib/request";
+	import type { UserResponse } from '$lib/type/api'
+	import { COOKIE_KEY } from '$lib/constant'
+
+	const token = Cookie.get(COOKIE_KEY.TOKEN)
+
+	if (token) {
+		request<UserResponse>('/user')
+			.then((res) => {
+				userStore.set(res.data)
+			})
+	}
 </script>
 
 <div 
@@ -13,7 +28,7 @@
 	<header
 		class="
 			h-[10dvh]
-			p-2 md:p-5
+			p-3 md:p-8
 		"
 	>
 		<nav 
@@ -27,9 +42,18 @@
 					<a 
 						href="/"
 						rel="noopener"
-						class:active-link={$page.url.pathname === '/'}
+						class="font-bold flex items-center gap-x-1"
 					>
-						home
+					<div class="w-6 h-6">
+						<Icon 
+							icon="arcticons:url-checker"
+							class="
+								text-black-700
+								text-2xl
+							"
+						/>
+					</div>
+						Shor
 					</a>
 				</li>
 			</ul>
@@ -41,20 +65,20 @@
 			>
 				<li>
 					<a
-						href="/login"
+						href="/account"
 						rel="noopener"
-						class:active-link={$page.url.pathname === '/login'}
+						class:active-link={$page.url.pathname === '/account'}
 					>
-						Login
-					</a>
-				</li>
-				<li>
-					<a
-						href="/register"
-						rel="noopener"
-						class:active-link={$page.url.pathname === '/register'}
-					>
-						Register
+					
+					<div class="w-6 h-6">
+						<Icon 
+							icon="icon-park-outline:people"
+							class="
+								text-black-700
+								text-2xl
+							"
+							/>
+						</div>
 					</a>
 				</li>
 			</ul>

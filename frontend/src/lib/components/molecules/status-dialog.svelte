@@ -43,7 +43,7 @@
         <div />
       {/if}
     </div>
-    <Dialog.Title> 
+    <!-- <Dialog.Title> 
       {#if status === Status.Info}
         <p>Info</p>
       {:else if status === Status.Success}
@@ -53,7 +53,7 @@
       {:else}
         <p></p>
       {/if}
-    </Dialog.Title>
+    </Dialog.Title> -->
     <Dialog.Description>
      <slot />
     </Dialog.Description>

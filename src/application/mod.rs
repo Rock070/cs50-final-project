@@ -38,6 +38,7 @@ impl Application {
         let router = Router::new()
             .route("/api/*path", get(redirect_hash_url))
             .route("/api/hash-url", post(hash_url))
+            .route("/api/user", get(user_info))
             .route("/api/user/login", post(user_login))
             .route("/api/user/register", post(user_register))
             .merge(SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", ApiDoc::openapi()))

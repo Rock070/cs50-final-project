@@ -8,6 +8,7 @@ use utoipa::{OpenApi, TupleUnit};
 #[derive(OpenApi)]
 #[openapi(
   paths(
+    user_info,
     user_register,
     user_login,
     hash_url,
@@ -19,6 +20,7 @@ use utoipa::{OpenApi, TupleUnit};
   ),
   components(schemas(
       HashUrlRequest,
+      UserInfoResponse,
       LoginRequest,
       RegisterRequest,
       RegisterResponseData,
