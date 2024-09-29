@@ -1,6 +1,6 @@
 use crate::{
   application::AppState,
-  entity::users,
+  entity::{users, urls},
   AppError, AppHttpResponse, HttpResponseCode,
 };
 
@@ -15,32 +15,38 @@ use jsonwebtoken::errors::ErrorKind;
 use serde::Serialize;
 use utoipa::ToSchema;
 
-#[derive(Debug, Serialize, ToSchema)]
-pub struct UserInfoResponse {
-    pub id: String,
-    pub username: String,
-    pub email: String,
+#[derive(Debug, Serialize)]
+pub struct UserUrl {
+  pub id: String,
+  pub short_url: String,
+  pub url: String,
+  pub created_at: String,
 }
 
-/// 1.1.1.1 取得使用者資訊
+#[derive(Debug, Serialize, ToSchema)]
+pub struct UserUrlsResponse {
+  pub urls: Vec<UserUrl>,
+}
+
+/// 1.1.1.4 取得使用者短網址
 #[utoipa::path(
   get,
-  path = "/api/user",           
+  path = "/api/user/urls",           
   tag = "user",
-  operation_id = "user_info",
+  operation_id = "user_urls",
   security(
     ("bearer_auth" = [])
   ),
   responses(
-      (status = 200, description = HttpResponseCode::Success.to_message(), body = AppHttpResponseUserInfoResponse, example = json!({"message": HttpResponseCode::Success.to_message(), "code": HttpResponseCode::Success.to_str(), "data": {"id": "1234567890", "username": "test", "email": "test@example.com"}})),
+      (status = 200, description = HttpResponseCode::Success.to_message(), body = AppHttpResponseUserUrlsResponse, example = json!({"message": HttpResponseCode::Success.to_message(), "code": HttpResponseCode::Success.to_str()})),
       (status = 400, description = HttpResponseCode::BadRequest.to_message(), body = AppHttpResponseNone, example = json!({"message": HttpResponseCode::BadRequest.to_message(), "code": HttpResponseCode::BadRequest.to_str(), "data": null})),
       (status = 401, description = HttpResponseCode::Unauthorized.to_message(), body = AppHttpResponseNone, example = json!({"message": HttpResponseCode::Unauthorized.to_message(), "code": HttpResponseCode::Unauthorized.to_str(), "data": null})),
   )
 )]
-pub async fn user_info(
+pub async fn user_urls(
   state: State<AppState>,
   authorization: Option<TypedHeader<Authorization<Bearer>>>,
-) -> Result<Json<AppHttpResponse<UserInfoResponse>>, AppError> {
+) -> Result<Json<AppHttpResponse<UserUrlsResponse>>, AppError> {
   if let Some(authorization_header) = authorization {
       let token = authorization_header.token().to_string();
 
@@ -72,14 +78,23 @@ pub async fn user_info(
               None => return Err(AppError::UnauthorizedError("token is invalid".to_string())),
           };
 
-          // response user info
+          let urls = urls::Entity::find()
+            .filter(urls::Column::UserId.eq(Some(user.id)).and(urls::Column::IsDelete.eq(false)))
+            .all(&state.database)
+            .await?;
+
+          let user_urls = urls.iter().map(|url| UserUrl {
+            id: url.id.to_string(),
+            short_url: format!("{}{}", &state.application.base_url, &url.short_url),
+            url: url.url.to_string(),
+            created_at: url.created_at.to_string(),
+          }).collect();
+
           return Ok(Json(AppHttpResponse::new(
             HttpResponseCode::Success.to_message().to_string(),
             HttpResponseCode::Success.to_str().to_string(),
-            Some(UserInfoResponse {
-                id: user.id.to_string(),
-                email: user.email,
-                username: user.username,
+            Some(UserUrlsResponse {
+              urls: user_urls, 
             }))))
       }
   } 

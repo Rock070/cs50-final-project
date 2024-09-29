@@ -21,6 +21,7 @@ pub enum Urls {
     ShortUrl,
     CreatedAt,
     UpdatedAt,
+    IsDelete,
     UserId,
 }
 
@@ -31,7 +32,7 @@ pub enum RequestRecords {
     Ip,
     UserAgent,
     Origin,
-    #[deprecated]
+    // #[deprecated]
     Referer,
     UrlId,
     CreatedAt,

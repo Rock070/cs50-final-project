@@ -12,6 +12,7 @@ pub struct Model {
     pub created_at: DateTime,
     pub updated_at: Option<DateTime>,
     pub user_id: Option<Uuid>,
+    pub is_delete: bool,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

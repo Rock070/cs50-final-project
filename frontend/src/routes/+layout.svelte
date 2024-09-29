@@ -5,17 +5,27 @@
 	import Cookie from 'js-cookie'
 	import { userStore } from '$lib/store/user'
 	import { request } from "$lib/request";
-	import type { UserResponse } from '$lib/type/api'
+	import type { LoginResponse } from '$lib/type/api'
 	import { COOKIE_KEY } from '$lib/constant'
 
-	const token = Cookie.get(COOKIE_KEY.TOKEN)
+	export let data: { token: string } = { token: Cookie.get(COOKIE_KEY.TOKEN) || '' };
 
-	if (token) {
-		request<UserResponse>('/user')
+	if (data.token) {
+		request<LoginResponse>('/user', {
+			token: data.token,
+		})
 			.then((res) => {
-				userStore.set(res.data)
+				userStore.set({
+					...res.data,
+					token: data.token
+				})
+				console.log("🚀 ~ userStore.update ~ userStore:", $userStore)
 			})
-	}
+		}
+
+		setTimeout(() => {
+			console.log("🚀 ~ userStore.update ~ userStore:", $userStore)
+		}, 3000)
 </script>
 
 <div 

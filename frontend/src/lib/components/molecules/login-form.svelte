@@ -28,7 +28,6 @@
    SPA: true,
    clearOnSubmit: 'errors',
     onUpdate({ form }){
-      console.log(form);
       if (!form.valid) return;
       request<LoginResponse>('/user/login', {
         method: 'POST',
@@ -40,8 +39,8 @@
         .then(res => {
           userStore.set(res.data)
           status = Status.Success
-          goto('/account')
           Cookie.set(COOKIE_KEY.TOKEN, res.data.token)
+          goto('/account')
         })
         .catch(err => {
           status = Status.Error
@@ -75,7 +74,14 @@
    </Form.Control>
    <Form.FieldErrors />
   </Form.Field>
-  <div class="flex justify-end mt-3">
+  <div class="flex justify-end items-center gap-x-5 mt-3">
+    <a
+      href="/register"
+      rel="noopener"
+      class="text-sm text-blue-500 hover:text-blue-700"
+    >
+      Register
+    </a>
     <Form.Button>Login</Form.Button>
   </div>
  </form>

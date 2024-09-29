@@ -4,7 +4,7 @@ use crate::{
 };
 
 use axum::{
-    routing::{get, post},
+    routing::{get, post, delete},
     Router,
     http::{
         HeaderValue, 
@@ -36,8 +36,10 @@ impl Application {
         let cors = get_cors_layer(&config.application);
 
         let router = Router::new()
-            .route("/api/*path", get(redirect_hash_url))
-            .route("/api/hash-url", post(hash_url))
+            .route("/*path", get(url_redirect))
+            .route("/api/url/hash", post(url_hash))
+            .route("/api/url", delete(url_delete))
+            .route("/api/user/urls", get(user_urls))
             .route("/api/user", get(user_info))
             .route("/api/user/login", post(user_login))
             .route("/api/user/register", post(user_register))
@@ -94,7 +96,7 @@ pub fn get_cors_layer(setting: &ApplicationSetting) -> CorsLayer {
                 .collect::<Vec<HeaderValue>>(),
 
         )
-        .allow_methods([Method::GET, Method::POST])
+        .allow_methods([Method::GET, Method::POST, Method::DELETE])
         .allow_headers([AUTHORIZATION, CONTENT_TYPE, ACCEPT])
         .allow_credentials(true)
 }

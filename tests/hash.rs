@@ -7,7 +7,7 @@ use tower::ServiceExt;
 
 mod common;
 
-mod test_hash_url {
+mod test_url_hash {
 
     use super::*;
 
@@ -20,7 +20,7 @@ mod test_hash_url {
             .oneshot(
                 Request::builder()
                     .method("POST")
-                    .uri("/hash-url")
+                    .uri("/api/url/hash")
                     .header("Content-Type", "application/json")
                     .body(Body::from(r#"{"url": "https://google.com"}"#))
                     .unwrap(),
@@ -44,7 +44,7 @@ mod test_hash_url {
     }
 }
 
-mod test_redirect {
+mod test_url_redirect {
     use super::*;
 
     #[tokio::test]
@@ -56,7 +56,7 @@ mod test_redirect {
             .oneshot(
                 Request::builder()
                     .method("POST")
-                    .uri("/hash-url")
+                    .uri("/api/url/hash")
                     .header("Content-Type", "application/json")
                     .body(Body::from(r#"{"url": "https://www.apple.com"}"#))
                     .unwrap(),

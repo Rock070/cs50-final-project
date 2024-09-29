@@ -2,6 +2,7 @@
   import * as Form from "$lib/components/ui/form";
   import { Copy } from '$lib/components/ui/copy'
   import { Status } from '$lib/type'
+  import { userStore } from '$lib/store/user'
   import type { HashUrlResponse } from '$lib/type/api'
   import { Input } from "$lib/components/ui/input";
   import StatusDialog from "./status-dialog.svelte";
@@ -26,10 +27,10 @@
    SPA: true,
    clearOnSubmit: 'errors',
     onUpdate({ form }){
-      console.log(form);
       if (!form.valid) return;
-      request<HashUrlResponse>('/hash-url', {
+      request<HashUrlResponse>('/url/hash', {
         method: 'POST',
+        token: $userStore.token,
         body: {
           url: form.data.url,
         },

@@ -29,12 +29,12 @@ pub struct HashUrlResponse {
     url: String,
 }
 
-/// 2.1.1.2 產生短網址
+/// 2.1.1.1 產生短網址
 #[utoipa::path(
     post,
-    path = "/api/hash-url",
+    path = "/api/url/hash",
     tag = "url",
-    operation_id = "hash-url",
+    operation_id = "url-hash",
     request_body(
         content = HashUrlRequest,
         description = "Hash URL request",
@@ -47,7 +47,7 @@ pub struct HashUrlResponse {
         (status = 401, description = HttpResponseCode::Unauthorized.to_message(), body = AppHttpResponseNone, example = json!({"message": HttpResponseCode::Unauthorized.to_message(), "code": HttpResponseCode::Unauthorized.to_str(), "data": null})),
     )
 )]
-pub async fn hash_url(
+pub async fn url_hash(
     state: State<AppState>,
     authorization: Option<TypedHeader<Authorization<Bearer>>>,
     Json(data): Json<HashUrlRequest>,
@@ -93,7 +93,7 @@ pub async fn hash_url(
                 .filter(
                     urls::Column::Url
                         .eq(&new_url)
-                        .and(urls::Column::UserId.eq(Uuid::parse_str(&user_id).unwrap())),
+                        .and(urls::Column::UserId.eq(Uuid::parse_str(&user_id).unwrap()).and(urls::Column::IsDelete.eq(false))),
                 )
                 .one(&state.database)
                 .await?;

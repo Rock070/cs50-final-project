@@ -1,7 +1,7 @@
 import { createFetch } from 'ofetch';
 import type { Response } from '$lib/type';
 import { API_CODE } from '$lib/constant';
-import { useRequestHandler, useResponseHandler } from './interceptor';
+import { useResponseHandler } from './interceptor';
 
 import type { FetchOptions } from 'ofetch';
 
@@ -18,17 +18,23 @@ let fetchInstance: ReturnType<typeof createFetch>;
  * @param {FetchOptions} [fetchOptions] - fetch 的選項
  * @returns {Promise<Response<T>>} - API 回傳的伺服器回應
  */
-export default async <T = unknown>(url: string, fetchOptions?: FetchOptions): Promise<Response<T>> => {
+export default async <T = unknown>(url: string, requestOptions?: RequestOptions): Promise<Response<T>> => {
   // TODO 改為從 env 取得
 	const baseURL = 'http://localhost:3000/api'
 	fetchInstance = fetchInstance || createFetch();
 
+	const token = requestOptions?.token;
+	const headers = new Headers(requestOptions?.headers);
+	
+	if (token) {
+		headers.set('Authorization', `Bearer ${token}`);
+	}
 	return await fetchInstance(url, {
 		baseURL,
 		retry: 0,
 		onResponse: useResponseHandler,
-		onRequest: useRequestHandler,
-		...fetchOptions,
+		headers,
+		...requestOptions,
 	})
 		.then((response: Response<T>) => {
 			if (response?.code !== API_CODE.OK) {
@@ -40,3 +46,8 @@ export default async <T = unknown>(url: string, fetchOptions?: FetchOptions): Pr
 			return response;
 		});
 };
+
+
+export type RequestOptions = FetchOptions & {
+	token?: string;
+}

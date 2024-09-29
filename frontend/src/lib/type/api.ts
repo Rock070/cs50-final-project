@@ -32,3 +32,29 @@ export type LoginResponse = UserResponse & {
 }
 
 export type RegisterResponse = LoginResponse
+
+export type UserUrl = {
+  id: string
+  /**
+   * 縮短後的 url
+   */
+  short_url: string
+
+  /**
+   * 原始 url
+   */
+  url: string
+
+  /**
+   * 建立時間
+   */
+  created_at: string
+}
+
+export type UserUrlsResponse = {
+  /**
+   * 使用者 url
+   */
+  urls: UserUrl[]
+}
+

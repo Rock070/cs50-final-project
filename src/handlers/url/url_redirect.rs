@@ -19,17 +19,19 @@ use axum::{
 
 type HashUrlRequest = String;
 
-/// 2.1.1.2 轉導短網址至原網址
+/// 2.1.1.3 轉導短網址至原網址
 #[utoipa::path(
     get,
-    path = "/api/{path}",
+    path = "/{path}",
     tag = "url",
+    operation_id = "url-redirect",
     responses(
         (status = 302, description = "Redirect to the original URL"),
-        (status = 400, description = "Bad request")
+        (status = 400, description = "Bad request"),
+        (status = 404, description = "Not found")
     )
 )]
-pub async fn redirect_hash_url(
+pub async fn url_redirect(
     state: State<AppState>,
     header_user_agent: Option<TypedHeader<UserAgent>>,
     header_origin: Option<TypedHeader<Origin>>,
@@ -48,7 +50,7 @@ pub async fn redirect_hash_url(
     let path = HashPath::try_from(path)?.0;
 
     let column = urls::Entity::find()
-        .filter(urls::Column::ShortUrl.eq(path))
+        .filter(urls::Column::ShortUrl.eq(path).and(urls::Column::IsDelete.eq(false)))
         .one(&state.database)
         .await?;
 

@@ -8,33 +8,27 @@
   import { Button } from '$lib/components/ui/button';
   import { COOKIE_KEY } from '$lib/constant';
   import Cookie from 'js-cookie';
+  import type { UserUrl } from '$lib/type/api';
 
   const logout = () => {
     Cookie.remove(COOKIE_KEY.TOKEN);
     clearUserStore();
   }
 
-  const urls = [ 
-    {
-      url: 'https://www.google.com',
-      shortUrl: 'https://short.url/google',
-    },
-    {
-      url: 'https://www.facebook.com',
-      shortUrl: 'https://short.url/facebook',
-    },
-    {
-      url: 'https://www.twitter.com',
-      shortUrl: 'https://short.url/twitter',
-    }
-  ]
+  export let data: { urls:  UserUrl[] } = { urls: [] };
+
+  $: urls = data.urls;
 </script>
 <div class="flex flex-col items-center justify-center min-h-[70dvh]">
-  {#if $userStore.token}
   <div
     class="w-full"
   >
-    <p>Hello, <strong>{$userStore.username.slice(0, 1).toUpperCase() + $userStore.username.slice(1)}!</strong></p>
+    <p
+      class="mb-4 text-right"
+    >
+      Hello, 
+      <strong>{$userStore.username.slice(0, 1).toUpperCase() + $userStore.username.slice(1)}!</strong>
+    </p>
     <div>
       <h3 class="text-lg font-medium">Profile</h3>
       <p class="text-muted-foreground text-sm">This is information about you.</p>
@@ -45,27 +39,31 @@
     />
 
     <div
-      class="flex flex-col gap-3"
+      class="flex flex-col gap-y-5"
     >
-      <div>
-        <Label class="mb-3">Username</Label>
+      <div
+        class="row-block"
+      >
+        <Label>Username</Label>
         <Input placeholder="username" value={$userStore.username} disabled />
       </div>
 
-      <div>
-        <Label class="mb-3">Email</Label>
+      <div
+        class="row-block"
+      >
+        <Label>Email</Label>
         <Input placeholder="email" value={$userStore.email} disabled />
       </div>
 
-      <div>
-        <Label class="mb-3">URLs</Label>
-        {#each urls as url}
-          <Input placeholder="email" value={url} disabled />
-        {/each}
+      <div
+        class="row-block"
+      >
+        <div>
+          <Label>URLs</Label>
+          <p class="text-muted-foreground text-sm">A list of your short urls.</p>
+        </div>
+        <UrlsTable urls={data.urls} />
       </div>
-      <UrlsTable urls={urls} />
-
-
     </div>
 
   </div>
@@ -75,20 +73,10 @@
   >
     Logout
   </Button>
-  {:else}
-  <a
-    href="/login"
-    rel="noopener"
-    class:active-link={$page.url.pathname === '/login'}
-  >
-    Login
-  </a>
-  <a
-    href="/register"
-    rel="noopener"
-    class:active-link={$page.url.pathname === '/register'}
-  >
-    Register
-  </a>
-  {/if}
 </div>
+
+<style>
+.row-block {
+  @apply flex flex-col gap-y-2;
+}
+</style>

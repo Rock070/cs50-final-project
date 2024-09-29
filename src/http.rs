@@ -1,7 +1,10 @@
 use serde::Serialize;
 use utoipa::{ToSchema, TupleUnit};
 
-use crate::{HashUrlResponse, LoginResponseData, RegisterResponseData, UserInfoResponse};
+use crate::{
+    DeleteUrlResponse, HashUrlResponse, LoginResponseData, RegisterResponseData, UserInfoResponse,
+    UserUrlsResponse,
+};
 
 // https://github.com/juhaku/utoipa/issues/684#issuecomment-1715245683
 #[derive(Serialize, ToSchema)]
@@ -10,7 +13,9 @@ use crate::{HashUrlResponse, LoginResponseData, RegisterResponseData, UserInfoRe
   AppHttpResponseHashUrlResponse = AppHttpResponse<HashUrlResponse>,
   AppHttpResponseLoginResponse = AppHttpResponse<LoginResponseData>,
   AppHttpResponseRegisterResponse = AppHttpResponse<RegisterResponseData>,
-  AppHttpResponseUserInfoResponse = AppHttpResponse<UserInfoResponse>
+  AppHttpResponseUserInfoResponse = AppHttpResponse<UserInfoResponse>,
+  AppHttpResponseUserUrlsResponse = AppHttpResponse<UserUrlsResponse>,
+  AppHttpResponseDeleteUrlResponse = AppHttpResponse<DeleteUrlResponse>
 )]
 pub struct AppHttpResponse<T: Serialize> {
     message: String,

@@ -1,5 +1,5 @@
 use crate::{
-    handlers::*, AppHttpResponse, HashUrlResponse, LoginRequest, LoginResponseData,
+    handlers::*, AppHttpResponse, DeleteUrlResponse, HashUrlResponse, LoginRequest, LoginResponseData,
     RegisterRequest, RegisterResponseData,
 };
 
@@ -11,8 +11,10 @@ use utoipa::{OpenApi, TupleUnit};
     user_info,
     user_register,
     user_login,
-    hash_url,
-    redirect_hash_url,
+    user_urls,
+    url_redirect,
+    url_hash,
+    url_delete,
   ),
   tags(
     (name = "user"),
@@ -23,13 +25,17 @@ use utoipa::{OpenApi, TupleUnit};
       UserInfoResponse,
       LoginRequest,
       RegisterRequest,
+      UserUrlsResponse,
       RegisterResponseData,
       LoginResponseData,
       HashUrlResponse,
       TupleUnit,
       AppHttpResponse<HashUrlResponse>,
+      AppHttpResponse<UserUrlsResponse>,
+      AppHttpResponse<UserInfoResponse>,
       AppHttpResponse<LoginResponseData>,
-      AppHttpResponse<TupleUnit>
+      AppHttpResponse<TupleUnit>,
+      AppHttpResponse<DeleteUrlResponse>
     )
   ),
 )]

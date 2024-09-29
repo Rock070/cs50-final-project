@@ -1,3 +1,3 @@
 export const enum COOKIE_KEY {
-	TOKEN = 'token',
+	TOKEN = 'shor-token',
 }

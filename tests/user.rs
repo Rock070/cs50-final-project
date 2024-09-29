@@ -42,7 +42,7 @@ mod user_register_test {
             .oneshot(
                 Request::builder()
                     .method("POST")
-                    .uri("/user/register")
+                    .uri("/api/user/register")
                     .header("Content-Type", "application/json")
                     .body(Body::from(body))
                     .unwrap(),
@@ -82,7 +82,7 @@ mod user_register_test {
             .oneshot(
                 Request::builder()
                     .method("POST")
-                    .uri("/user/register")
+                    .uri("/api/user/register")
                     .header("Content-Type", "application/json")
                     .body(Body::from(body))
                     .unwrap(),
@@ -115,7 +115,7 @@ mod user_login_test {
             .oneshot(
                 Request::builder()
                     .method("POST")
-                    .uri("/user/register")
+                    .uri("/api/user/register")
                     .header("Content-Type", "application/json")
                     .body(Body::from(body))
                     .unwrap(),
@@ -139,7 +139,7 @@ mod user_login_test {
             .oneshot(
                 Request::builder()
                     .method("POST")
-                    .uri("/user/login")
+                    .uri("/api/user/login")
                     .header("Content-Type", "application/json")
                     .body(Body::from(body))
                     .unwrap(),
