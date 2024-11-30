@@ -19,11 +19,13 @@
 					...res.data,
 					token: data.token
 				})
-				console.log("🚀 ~ userStore.update ~ userStore:", $userStore)
 			})
-		}
+			.catch((err) => {
+				console.error(err)
+			})
+	}
 
-		setTimeout(() => {
+	setTimeout(() => {
 			console.log("🚀 ~ userStore.update ~ userStore:", $userStore)
 		}, 3000)
 </script>

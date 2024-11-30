@@ -15,6 +15,9 @@
       token: $userStore.token,
     }).then(res => {
       urls = res.data.urls;
+    })
+    .catch(err => {
+      console.error(err)
     });
   };
 
@@ -32,6 +35,9 @@
       open = true;
       fetchUrls();
     })
+    .catch(err => {
+      console.error(err)
+    });
   }
  </script>
   

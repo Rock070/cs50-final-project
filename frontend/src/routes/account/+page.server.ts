@@ -14,12 +14,13 @@ export async function load({ cookies }) {
 
   let urls: UserUrl[] = [];
 
-  try {
-    const res = await request<UserUrlsResponse>('/user/urls', { token });
-    urls = res.data.urls;
-  } catch (err) {
-    console.error(err);
-  }
+  await request<UserUrlsResponse>('/user/urls', { token })
+    .then (res => {
+      urls = res.data.urls;
+    })
+    .catch(err => {
+      console.error(err);
+    });
 
   return {
     token,
