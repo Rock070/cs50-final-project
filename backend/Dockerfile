@@ -1,14 +1,20 @@
-FROM rust:bullseye AS builder
-WORKDIR /usr/src/app
+FROM rust:1.80.0-slim-bullseye AS builder
+WORKDIR /app
 COPY Cargo.toml Cargo.lock ./
-RUN cargo fetch
-RUN cargo build --release --bin shor || true
+
+RUN apt-get update && apt-get install -y curl
+RUN curl --version
+RUN mkdir src \
+    && echo "fn main () {}" > src/main.rs \
+    && cargo build --locked --release 
 
 COPY . .
-RUN cargo build --release --bin shor
+RUN cargo build --locked --release
 
-FROM alpine:latest
-COPY --from=builder ./target/release/shor /usr/local/bin/shor
-RUN ls
+FROM debian:bullseye-slim AS final
+WORKDIR /app
 EXPOSE 8080
-CMD ["shor"]
+COPY --from=builder /app/configuration configuration
+COPY --from=builder /app/target/release/shor /usr/local/bin/shor
+
+CMD shor --config "$CONFIG"

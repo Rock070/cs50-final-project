@@ -1,0 +1,43 @@
+version: '3.8'
+services:
+  db:
+    image: postgres:16.5
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+      PGUSER: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/postgres.dump:/docker-entrypoint-initdb.d/postgres.dump
+    entrypoint: >
+      sh -c "
+        docker-entrypoint.sh postgres & 
+        until pg_isready -h localhost -p 5432; do
+          echo 'Waiting for PostgreSQL to start...'
+          sleep 2
+        done;
+        if [ -f /docker-entrypoint-initdb.d/postgres.dump ]; then
+          pg_restore -c -U postgres -d postgres /docker-entrypoint-initdb.d/postgres.dump
+        fi
+        wait
+      "
+  backend:
+    environment:
+      CONFIG: "configuration/development.yml"
+    build: 
+      context: ./backend
+    platform: linux/amd64
+    ports:
+      - "3000:3000"
+  frontend:
+    build: 
+      context: ./frontend
+    platform: linux/amd64
+    image: shor
+    ports:
+      - "5173:3000"
+volumes:
+  postgres_data:
