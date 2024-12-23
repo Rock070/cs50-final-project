@@ -22,14 +22,14 @@ pub struct JwtHandler {
     pub private_key: Secret<String>,
     pub header: Header,
     pub public_key: String,
-    pub expiration_time: i64,
+    pub expiration_minutes: i64,
 }
 
 impl JwtHandler {
     pub fn create_token(self, setting: &ApplicationSetting, user_name: &str) -> Result<String> {
         let claims = Claims {
             aud: user_name.to_owned(),
-            exp: (Utc::now() + chrono::Duration::minutes(self.expiration_time)).timestamp()
+            exp: (Utc::now() + chrono::Duration::minutes(self.expiration_minutes)).timestamp()
                 as usize,
             iat: Utc::now().timestamp() as usize,
             iss: format!("{} - {}", setting.name, setting.owner),

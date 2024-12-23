@@ -45,7 +45,7 @@ pub struct JwtHandlerSetting {
     pub private_key: Secret<String>,
     pub public_key: String,
     #[serde(deserialize_with = "deserialize_number_from_string")]
-    pub expiration_time: i64,
+    pub expiration_minutes: i64,
 }
 
 impl DatabaseSetting {
@@ -71,14 +71,13 @@ where
     Ok(Secret::new(s))
 }
 
-pub fn get_configuration() -> Result<Configuration, config::ConfigError> {
-    const DEFAULT_ENVIRONMENT: &str = "development";
-
+pub fn get_configuration(config_path: &str) -> Result<Configuration, config::ConfigError> {
     let basic_path = env::current_dir().expect("Failed to get current directory");
-    let config_path = basic_path.join("configuration");
-    let environment = env::var("APP_ENVIRONMENT").unwrap_or(DEFAULT_ENVIRONMENT.to_string());
+    let config_path = basic_path.join(config_path);
 
-    let path = config_path.join(environment);
+    println!("config_path: {:?}", config_path);
+
+    let path = config_path.clone();
 
     let config = Config::builder()
         .add_source(config::File::from(config_path.join(path)).required(true))

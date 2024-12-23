@@ -82,7 +82,7 @@ pub fn get_jwt_handler(setting: &JwtHandlerSetting) -> JwtHandler {
         private_key: setting.private_key.clone(),
         header: Header::new(Algorithm::RS256),
         public_key: setting.public_key.clone(),
-        expiration_time: setting.expiration_time,
+        expiration_minutes: setting.expiration_minutes,
     }
 }
 
