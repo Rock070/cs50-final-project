@@ -26,7 +26,7 @@ type HashUrlRequest = String;
     tag = "url",
     operation_id = "url-redirect",
     responses(
-        (status = 302, description = "Redirect to the original URL"),
+        (status = 301, description = "Redirect to the original URL"),
         (status = 400, description = "Bad request"),
         (status = 404, description = "Not found")
     )
@@ -68,7 +68,7 @@ pub async fn url_redirect(
             .exec(&state.database)
             .await?;
 
-        return Ok(Redirect::temporary(&model.url));
+        return Ok(Redirect::permanent(&model.url));
     }
 
     Err(AppError::BadRequestError(BadRequestError::from(

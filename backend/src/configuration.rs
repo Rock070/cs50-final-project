@@ -75,8 +75,6 @@ pub fn get_configuration(config_path: &str) -> Result<Configuration, config::Con
     let basic_path = env::current_dir().expect("Failed to get current directory");
     let config_path = basic_path.join(config_path);
 
-    println!("config_path: {:?}", config_path);
-
     let path = config_path.clone();
 
     let config = Config::builder()
