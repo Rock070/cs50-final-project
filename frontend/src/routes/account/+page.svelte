@@ -8,11 +8,14 @@
   import { Button } from '$lib/components/ui/button';
   import { COOKIE_KEY } from '$lib/constant';
   import Cookie from 'js-cookie';
+  import { goto } from '$app/navigation';
+
   import type { UserUrl } from '$lib/type/api';
 
   const logout = () => {
     Cookie.remove(COOKIE_KEY.TOKEN);
     clearUserStore();
+    goto('/login')
   }
 
   export let data: { urls:  UserUrl[] } = { urls: [] };

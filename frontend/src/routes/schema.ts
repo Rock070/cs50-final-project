@@ -7,8 +7,15 @@ export const loginFormSchema = z.object({
 });
 
 // 註冊 form schema
-export const registerFormSchema = loginFormSchema.extend({
-  name: z.string().min(1),
+export const registerFormSchema = z.object({
+  username: z.string().min(1),
+  email: z.string().email(),
+  password: z.string().min(1),
+  confirmPassword: z.string().min(1)
+})
+.refine((data) => data.password === data.confirmPassword, {
+  message: '密碼不一致',
+  path: ['confirmPassword'],
 });
 export const urlFormSchema = z.object({
   url: z.string().url(),

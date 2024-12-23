@@ -16,7 +16,7 @@
       },
       onError(err) {
         error = true
-        console.log(err)
+        console.log(JSON.stringify(err))
       }
     })
 

@@ -24,10 +24,6 @@
 				console.error(err)
 			})
 	}
-
-	setTimeout(() => {
-			console.log("🚀 ~ userStore.update ~ userStore:", $userStore)
-		}, 3000)
 </script>
 
 <div 

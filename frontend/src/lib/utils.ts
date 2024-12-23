@@ -63,20 +63,34 @@ export const flyAndScale = (
 
 const noop = () => {};
 
-
 export async function copyText(
-	textToCopy: string, 
+	textToCopy: string,
 	options = {
 		onSuccess: noop,
-		// eslint-disable-next-line @typescript-eslint/no-unused-vars
-		onError: (err: string) => {},
+		onError: (err: Error) => {},
 	}
 ) {
 	try {
-		await navigator.clipboard.writeText(textToCopy);
-		options.onSuccess();
-	} catch (err) {
-		options.onError(err as string);
-		console.error('Failed to copy: ', err);
+		// 優先使用現代的 Clipboard API
+		if (navigator.clipboard && window.isSecureContext) {
+			await navigator.clipboard.writeText(textToCopy);
+			options.onSuccess();
+			return;
+		}
+
+		const input = document.createElement('input')
+		input.type = 'text'
+		input.value = textToCopy
+		document.body.appendChild(input)
+		setTimeout(() => {
+			input.select()
+			document.execCommand('copy')
+			document.body.removeChild(input)
+			options.onSuccess();
+		}, 500)
+		
+	} catch (err: unknown) {
+		options.onError(err as Error);
+		console.error('複製失敗:', JSON.stringify(err));
 	}
 }

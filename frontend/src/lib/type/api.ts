@@ -31,7 +31,7 @@ export type LoginResponse = UserResponse & {
   token: string
 }
 
-export type RegisterResponse = LoginResponse
+export type RegisterResponse = UserResponse
 
 export type UserUrl = {
   id: string

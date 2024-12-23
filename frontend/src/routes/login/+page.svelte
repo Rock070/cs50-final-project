@@ -1,6 +1,5 @@
 <script lang="ts">
-  import { page } from '$app/stores';
-  import type { PageData } from './$types.js';
+import type { PageData } from './$types.js';
   import LoginForm from '$lib/components/molecules/login-form.svelte';
 
   export let data: PageData;
