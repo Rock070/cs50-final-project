@@ -1,6 +1,7 @@
 **/target
 .env
-configuration/development.yml
-configuration/production.yml
-configuration/test.yml
+**/configuration/**
+!**/configuration/development.yml
 .DS_Store
+*.dump
+!postgres.dump
