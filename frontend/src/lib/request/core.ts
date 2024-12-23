@@ -4,6 +4,7 @@ import { API_CODE } from '$lib/constant';
 import { useResponseHandler } from './interceptor';
 
 import type { FetchOptions } from 'ofetch';
+import { browser } from '$app/environment';
 
 /**
  * Singleton fetch instance
@@ -20,7 +21,12 @@ let fetchInstance: ReturnType<typeof createFetch>;
  */
 export default async <T = unknown>(url: string, requestOptions?: RequestOptions): Promise<Response<T>> => {
   // TODO 改為從 env 取得
-	const baseURL = 'http://localhost:3000/api'
+	const baseURL = import.meta.env.DEV
+		? 'http://localhost:3000/api'
+		: browser 
+			? 'http://localhost:3000/api'
+			: 'http://backend:3000/api';
+			
 	fetchInstance = fetchInstance || createFetch();
 
 	const token = requestOptions?.token;
