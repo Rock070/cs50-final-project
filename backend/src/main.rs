@@ -1,6 +1,6 @@
 use shor::{get_configuration, get_subscriber, Application};
-use tracing_subscriber::util::SubscriberInitExt;
 use std::env;
+use tracing_subscriber::util::SubscriberInitExt;
 
 #[tokio::main]
 async fn main() {
@@ -10,7 +10,7 @@ async fn main() {
         if let Some(path) = args.get(pos + 1) {
             config_path = path.clone();
         }
-    }    
+    }
     let config = get_configuration(&config_path).expect("Failed to read configuration.");
 
     get_subscriber(&config).init();

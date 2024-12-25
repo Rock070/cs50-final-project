@@ -46,6 +46,11 @@ export type UserUrl = {
   url: string
 
   /**
+   * 請求次數
+   */
+  request_count: number
+
+  /**
    * 建立時間
    */
   created_at: string

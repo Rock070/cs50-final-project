@@ -46,6 +46,7 @@
    <Table.Row>
     <Table.Head class="w-[35%]">Url</Table.Head>
     <Table.Head class="w-[35%]">Short Url</Table.Head>
+    <Table.Head class="w-[15%]">Request Count</Table.Head>
     <Table.Head class="w-[15%]">Created At</Table.Head>
     <Table.Head class="w-[15%]">Action</Table.Head>
    </Table.Row>
@@ -55,6 +56,7 @@
     <Table.Row>
      <Table.Cell class="font-medium break-all">{url.url}</Table.Cell>
      <Table.Cell>{url.short_url}</Table.Cell>
+     <Table.Cell>{url.request_count}</Table.Cell>
      <Table.Cell>{format(new Date(url.created_at), 'yyyy-MM-dd HH:mm')}</Table.Cell>
      <Table.Cell>
       <div class="flex items-center gap-x-2">

@@ -1,19 +1,18 @@
 use crate::{
-  application::AppState,
-  entity::{users, urls},
-  AppError, AppHttpResponse, HttpResponseCode,
-  BadRequestError,
+    application::AppState,
+    entity::{urls, users},
+    AppError, AppHttpResponse, BadRequestError, HttpResponseCode,
 };
-use uuid::Uuid;
 use axum::{extract::State, Json};
 use axum_extra::{
-  headers::{authorization::Bearer, Authorization},
-  TypedHeader,
+    headers::{authorization::Bearer, Authorization},
+    TypedHeader,
 };
 use sea_orm::{ActiveValue, ColumnTrait, EntityTrait, QueryFilter};
+use uuid::Uuid;
 
 use jsonwebtoken::errors::ErrorKind;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 
 #[derive(Debug, Deserialize, ToSchema)]
@@ -48,70 +47,80 @@ pub struct DeleteUrlResponse {
   ),
 )]
 pub async fn url_delete(
-  state: State<AppState>,
-  authorization: Option<TypedHeader<Authorization<Bearer>>>,
-  Json(data): Json<DeleteUrlRequest>,
+    state: State<AppState>,
+    authorization: Option<TypedHeader<Authorization<Bearer>>>,
+    Json(data): Json<DeleteUrlRequest>,
 ) -> Result<Json<AppHttpResponse<DeleteUrlResponse>>, AppError> {
-  if let Some(authorization_header) = authorization {
-      let token = authorization_header.token().to_string();
+    if let Some(authorization_header) = authorization {
+        let token = authorization_header.token().to_string();
 
-      let claim = match state
-          .jwt_handler
-          .clone()
-          .decode_token(&state.application, token)
-      {
-          Ok(claim) => claim,
-          Err(err) => {
-              if err.into_kind() == ErrorKind::ExpiredSignature {
-                  return Err(AppError::UnauthorizedError("token is expired".to_string()));
-              }
+        let claim = match state
+            .jwt_handler
+            .clone()
+            .decode_token(&state.application, token)
+        {
+            Ok(claim) => claim,
+            Err(err) => {
+                if err.into_kind() == ErrorKind::ExpiredSignature {
+                    return Err(AppError::UnauthorizedError("token is expired".to_string()));
+                }
 
-              return Err(AppError::UnauthorizedError("token is invalid".to_string()));
-          }
-      };
+                return Err(AppError::UnauthorizedError("token is invalid".to_string()));
+            }
+        };
 
-      let user_name = claim.aud.clone();
+        let user_name = claim.aud.clone();
 
-      if !user_name.is_empty() {
-          let users_column = users::Entity::find()
-              .filter(users::Column::Username.eq(&user_name))
-              .one(&state.database)
-              .await?;
+        if !user_name.is_empty() {
+            let users_column = users::Entity::find()
+                .filter(users::Column::Username.eq(&user_name))
+                .one(&state.database)
+                .await?;
 
-          let user = match users_column {
-              Some(user) => user,
-              None => return Err(AppError::UnauthorizedError("token is invalid".to_string())),
-          };
-
-          let url = urls::Entity::find()
-              .filter(urls::Column::Id.eq(Uuid::parse_str(&data.id).unwrap()).and(urls::Column::UserId.eq(user.id)))
-              .one(&state.database)
-              .await?;
-
-          if let Some(url) = url {
-            // is_delete set to true
-            let url = urls::ActiveModel {
-              id: ActiveValue::set(url.id),
-              is_delete: ActiveValue::set(true),
-              ..Default::default()
+            let user = match users_column {
+                Some(user) => user,
+                None => return Err(AppError::UnauthorizedError("token is invalid".to_string())),
             };
 
-            urls::Entity::update(url).exec(&state.database).await?;
+            let url = urls::Entity::find()
+                .filter(
+                    urls::Column::Id
+                        .eq(Uuid::parse_str(&data.id).unwrap())
+                        .and(urls::Column::UserId.eq(user.id)),
+                )
+                .one(&state.database)
+                .await?;
 
-            return Ok(Json(AppHttpResponse::new(
-              HttpResponseCode::Success.to_message().to_string(),
-              HttpResponseCode::Success.to_str().to_string(),
-              Some(DeleteUrlResponse {
-                  id: data.id.clone(),    
-              }),
+            if let Some(url) = url {
+                // is_delete set to true
+                let url = urls::ActiveModel {
+                    id: ActiveValue::set(url.id),
+                    is_delete: ActiveValue::set(true),
+                    ..Default::default()
+                };
+
+                urls::Entity::update(url).exec(&state.database).await?;
+
+                return Ok(Json(AppHttpResponse::new(
+                    HttpResponseCode::Success.to_message().to_string(),
+                    HttpResponseCode::Success.to_str().to_string(),
+                    Some(DeleteUrlResponse {
+                        id: data.id.clone(),
+                    }),
+                )));
+            }
+
+            return Err(AppError::BadRequestError(BadRequestError(
+                "url not found".to_string(),
             )));
-          }
-
-          return Err(AppError::BadRequestError(BadRequestError("url not found".to_string())));
         }
 
-        return Err(AppError::BadRequestError(BadRequestError("user not found".to_string())));
-  } 
+        return Err(AppError::BadRequestError(BadRequestError(
+            "user not found".to_string(),
+        )));
+    }
 
-  return Err(AppError::UnauthorizedError(HttpResponseCode::Unauthorized.to_message().to_string()));
+    return Err(AppError::UnauthorizedError(
+        HttpResponseCode::Unauthorized.to_message().to_string(),
+    ));
 }

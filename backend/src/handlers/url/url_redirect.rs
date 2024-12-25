@@ -50,7 +50,11 @@ pub async fn url_redirect(
     let path = HashPath::try_from(path)?.0;
 
     let column = urls::Entity::find()
-        .filter(urls::Column::ShortUrl.eq(path).and(urls::Column::IsDelete.eq(false)))
+        .filter(
+            urls::Column::ShortUrl
+                .eq(path)
+                .and(urls::Column::IsDelete.eq(false)),
+        )
         .one(&state.database)
         .await?;
 

@@ -91,9 +91,11 @@ pub async fn url_hash(
 
             let urls_column = urls::Entity::find()
                 .filter(
-                    urls::Column::Url
-                        .eq(&new_url)
-                        .and(urls::Column::UserId.eq(Uuid::parse_str(&user_id).unwrap()).and(urls::Column::IsDelete.eq(false))),
+                    urls::Column::Url.eq(&new_url).and(
+                        urls::Column::UserId
+                            .eq(Uuid::parse_str(&user_id).unwrap())
+                            .and(urls::Column::IsDelete.eq(false)),
+                    ),
                 )
                 .one(&state.database)
                 .await?;

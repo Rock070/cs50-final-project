@@ -4,13 +4,12 @@ use crate::{
 };
 
 use axum::{
-    routing::{get, post, delete},
-    Router,
     http::{
-        HeaderValue, 
-        Method,
-        header::{ACCEPT, AUTHORIZATION, CONTENT_TYPE}
+        header::{ACCEPT, AUTHORIZATION, CONTENT_TYPE},
+        HeaderValue, Method,
     },
+    routing::{delete, get, post},
+    Router,
 };
 
 use jsonwebtoken::{Algorithm, Header};
@@ -94,7 +93,6 @@ pub fn get_cors_layer(setting: &ApplicationSetting) -> CorsLayer {
                 .iter()
                 .map(|url| url.parse().unwrap())
                 .collect::<Vec<HeaderValue>>(),
-
         )
         .allow_methods([Method::GET, Method::POST, Method::DELETE])
         .allow_headers([AUTHORIZATION, CONTENT_TYPE, ACCEPT])
@@ -107,5 +105,3 @@ pub struct AppState {
     pub jwt_handler: JwtHandler,
     pub application: ApplicationSetting,
 }
-
-

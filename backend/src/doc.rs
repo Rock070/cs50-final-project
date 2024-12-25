@@ -1,6 +1,6 @@
 use crate::{
-    handlers::*, AppHttpResponse, DeleteUrlResponse, HashUrlResponse, LoginRequest, LoginResponseData,
-    RegisterRequest, RegisterResponseData,
+    handlers::*, AppHttpResponse, DeleteUrlResponse, HashUrlResponse, LoginRequest,
+    LoginResponseData, RegisterRequest, RegisterResponseData,
 };
 
 use utoipa::{OpenApi, TupleUnit};
