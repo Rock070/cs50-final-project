@@ -1,6 +1,6 @@
-# URL Shortener Service
+# URL Shortener Service - Shor
 
-(Draft)Video Demo: <https://www.youtube.com/watch?v=dQw4w9WgXcQ>
+Video Demo: [https://youtu.be/itByMdxLJ2Q](https://youtu.be/itByMdxLJ2Q)
 
 ## Description
 
@@ -63,6 +63,8 @@ path: `/account`
 - Manage short URL records
 - Track short URL usage
 
+![account_console](./assets/account_console.jpg)
+
 ## Technical Architecture
 
 ### Frontend
@@ -83,9 +85,14 @@ path: `/account`
   - [Swagger](https://swagger.io/) API documentation
 
 - Database Schema:
-  - users: User table
-  - urls: URL table
-  - request_records: Request records table
+
+### Database Schema
+
+| Table Name       | Description                    |
+|-------------------|--------------------------------|
+| `users`          | Stores user information.       |
+| `urls`           | Stores original and short URLs.|
+| `request_records`| Logs URL access details.       |
 
 ![database schema](./assets/schema.jpg)
 
@@ -197,13 +204,13 @@ sea-orm-cli migrate fresh -u postgres://postgres:postgres@localhost:5432/postgre
 
 ### Lessons Learned
 
-This project has been quite a journey! I dove into Rust as a complete beginner, spending countless hours with [the Rust Book](https://doc.rust-lang.org/book/) and figuring out how to build APIs with [Axum](https://github.com/tokio-rs/axum). Getting my head around SeaORM for database operations was challenging, but it was so satisfying when things finally clicked!
+This project has been quite a journey! I started learning Rust as a complete beginner, spending countless hours with [the Rust Book](https://doc.rust-lang.org/book/) and figuring out how to build APIs with [Axum](https://github.com/tokio-rs/axum). Getting my head around SeaORM for database operations was challenging, but it was so satisfying when things finally clicked!
 
 Adding Swagger API documentation with [OpenAPI](https://www.openapis.org/) specification was surprisingly straightforward and really helped in organizing my API endpoints. Having some prior experience with Docker made setting up PostgreSQL much smoother than I expected.
 
 The frontend side was another exciting challenge - I went through the entire SvelteKit [tutorial](https://svelte.dev/tutorial/svelte/welcome-to-svelte) and loved how intuitive it felt compared to other frameworks I've tried. I even dipped my toes into [Terraform](https://www.terraform.io/) for frontend and backend deployment (though I decided not to make it public due to cloud costs and security concerns).
 
-When I started this CS50 final project, I set some pretty ambitious goals for myself. There were definitely moments of frustration and countless Stack Overflow searches, but I'm really proud of how far I've come. CS50 gave me such a solid foundation in computer science, and the confidence to tackle technologies I'd never used before.
+When I started this CS50 final project, I set some pretty ambitious goals for myself. There were definitely moments of frustration and countless Stack Overflow searches, but I'm really proud of how far I've come.
 
 I couldn't have done any of this without the amazing open-source community and all the resources they've made available. Their work made this project possible, and I'm incredibly grateful for that.
 
